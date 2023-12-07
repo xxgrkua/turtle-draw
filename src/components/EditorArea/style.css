@@ -1,0 +1,18 @@
+.main-editor {
+  height: calc(100vh - 190px);
+  padding: 24px;
+  margin: 0;
+}
+
+.input-area {
+  padding: 12px calc((100vw - 200px - 720px)/2);
+}
+
+.editor-input {
+  position: sticky;
+  bottom: 12px;
+}
+
+.editor-history {
+  overflow-y: auto;
+}
