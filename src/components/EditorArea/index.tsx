@@ -64,7 +64,8 @@ function EditorArea() {
                 background: colorBgContainer,
               }}
             >
-              Draw
+              Canvas
+              <canvas></canvas>
             </Content>
           </Layout>
         </Col>
