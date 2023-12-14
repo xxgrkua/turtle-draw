@@ -2,7 +2,7 @@ import { Layout } from "antd";
 
 import AppBar from "../AppBar";
 import SideBar from "../SideBar";
-import TabBar from "../TabBar";
+import Tab from "../Tab";
 
 import "./style.css";
 
@@ -13,7 +13,7 @@ function Main() {
       <Layout>
         <SideBar />
         <Layout>
-          <TabBar />
+          <Tab />
         </Layout>
       </Layout>
     </Layout>

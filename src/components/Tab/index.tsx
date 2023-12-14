@@ -11,7 +11,7 @@ const initialItems = [
   { label: "Untitled", children: <EditorArea />, key: "1" },
 ];
 
-function TabBar() {
+function Tab() {
   const [activeKey, setActiveKey] = useState(initialItems[0].key);
   const [items, setItems] = useState(initialItems);
   const newTabIndex = useRef(0);
@@ -77,4 +77,4 @@ function TabBar() {
   );
 }
 
-export default TabBar;
+export default Tab;
