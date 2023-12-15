@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "TurtleDraw",
+  "name": "TurtleDraw",
   "icons": [
     {
       "src": "favicon.ico",
