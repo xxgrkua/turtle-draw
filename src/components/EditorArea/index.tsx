@@ -38,51 +38,50 @@ function EditorArea() {
   };
 
   return (
-    <div>
-      <Row gutter={8}>
-        <Col span={12}>
-          <Layout>
-            <Content
-              className="main-editor editor-history"
-              style={{
-                background: colorBgContainer,
-              }}
-            >
-              <Typography>
-                {history.map((value) => {
-                  return <Paragraph>{value}</Paragraph>;
-                })}
-              </Typography>
-            </Content>
-          </Layout>
-        </Col>
-        <Col span={12}>
-          <Layout>
-            <Content
-              className="main-editor editor-draw"
-              style={{
-                background: colorBgContainer,
-              }}
-            >
-              Canvas
-              <canvas></canvas>
-            </Content>
-          </Layout>
-        </Col>
-      </Row>
-      <Layout className="input-area">
-        <Input
-          className="editor-input"
-          placeholder="Press 'Enter' to draw"
-          prefix={<RightOutlined />}
-          suffix={<SendOutlined onClick={() => handleSend()} />}
-          size="large"
-          value={inputValue}
-          onChange={(event) => handleChange(event)}
-          onKeyDown={(event) => handleEnter(event)}
-        />
-      </Layout>
-    </div>
+    <Row gutter={8}>
+      <Col span={12}>
+        <Layout>
+          <Content
+            className="main-editor editor-history"
+            style={{
+              background: colorBgContainer,
+            }}
+          >
+            <Typography>
+              {history.map((value) => {
+                return <Paragraph>{value}</Paragraph>;
+              })}
+            </Typography>
+          </Content>
+        </Layout>
+        <Layout className="input-area">
+          <Input
+            className="editor-input"
+            placeholder="Press 'Enter' to draw"
+            prefix={<RightOutlined />}
+            suffix={<SendOutlined onClick={() => handleSend()} />}
+            size="large"
+            value={inputValue}
+            onChange={(event) => handleChange(event)}
+            onKeyDown={(event) => handleEnter(event)}
+          />
+        </Layout>
+      </Col>
+      <Col span={12}>
+        <Layout>
+          <Content
+            className="main-editor editor-canvas"
+            style={{
+              background: colorBgContainer,
+            }}
+          >
+            Canvas
+            <canvas></canvas>
+          </Content>
+        </Layout>
+      </Col>
+      <Col span={12}></Col>
+    </Row>
   );
 }
 
