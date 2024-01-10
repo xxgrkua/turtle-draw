@@ -24,7 +24,7 @@ async function main() {
 
   app.use(
     session({
-      secret: "secret key for photo app",
+      secret: "secret key for app",
       resave: false,
       saveUninitialized: false,
     }),
@@ -36,18 +36,56 @@ async function main() {
     response.send("Simple web server of files from " + __dirname);
   });
 
-  app.get("/user/info", isAuthenticated, async function (request, response) {});
+  // get other user
+  app.get("/user/:userId", async function (request, response) {});
 
+  // get user self
+  app.get("/user", isAuthenticated, async function (request, response) {});
+
+  // register user
+  app.post("/user", async function (request, response) {});
+
+  // edit user
+  app.put("/user", isAuthenticated, async function (request, response) {});
+
+  // delete user
+  app.delete("/user", isAuthenticated, async function (request, response) {});
+
+  // user login
   app.post("/user/login", async function (request, response) {});
 
-  app.post("/user/logout", async function (request, response) {});
-
-  app.post("/user/register", async function (request, response) {});
-
-  app.get("/gallery/list", async function (request, response) {});
-
+  // user logout
   app.post(
-    "/user/draw",
+    "/user/logout",
+    isAuthenticated,
+    async function (request, response) {},
+  );
+
+  // get specific file
+  app.get("/file/:fileId", async function (request, response) {});
+
+  // create file
+  app.post("/file", isAuthenticated, async function (request, response) {});
+
+  // edit file
+  app.put("/file", isAuthenticated, async function (request, response) {});
+
+  // delete file
+  app.delete("/file", isAuthenticated, async function (request, response) {});
+
+  // get workspace
+  app.get("/workspace", isAuthenticated, async function (request, response) {});
+
+  // create workspace
+  app.post(
+    "/workspace",
+    isAuthenticated,
+    async function (request, response) {},
+  );
+
+  // delete workspace
+  app.delete(
+    "/workspace",
     isAuthenticated,
     async function (request, response) {},
   );
