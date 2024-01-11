@@ -49,7 +49,7 @@ function EditorArea() {
           >
             <Typography>
               {history.map((value) => {
-                return <Paragraph>{value}</Paragraph>;
+                return <Paragraph key={value}>{value}</Paragraph>;
               })}
             </Typography>
           </Content>
@@ -59,11 +59,21 @@ function EditorArea() {
             className="editor-input"
             placeholder="Press 'Enter' to draw"
             prefix={<RightOutlined />}
-            suffix={<SendOutlined onClick={() => handleSend()} />}
+            suffix={
+              <SendOutlined
+                onClick={() => {
+                  handleSend();
+                }}
+              />
+            }
             size="large"
             value={inputValue}
-            onChange={(event) => handleChange(event)}
-            onKeyDown={(event) => handleEnter(event)}
+            onChange={(event) => {
+              handleChange(event);
+            }}
+            onKeyDown={(event) => {
+              handleEnter(event);
+            }}
           />
         </Layout>
       </Col>

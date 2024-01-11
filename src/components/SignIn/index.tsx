@@ -39,7 +39,7 @@ const SignIn: React.FC = () => {
         actions={
           // TODO: add sns account login
           <Space>
-            Don't have an account yet? <Link to="/signup">Sign up</Link>
+            Don`&apos`t have an account yet? <Link to="/signup">Sign up</Link>
           </Space>
         }
       >
