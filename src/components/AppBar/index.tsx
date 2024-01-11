@@ -1,11 +1,12 @@
 import { Button, Layout } from "antd";
 
-import "./style.css";
+import React from "react";
 import { Link } from "react-router-dom";
+import "./style.css";
 
 const { Header } = Layout;
 
-function AppBar() {
+const AppBar: React.FC = function () {
   return (
     <Header style={{ display: "flex", alignItems: "center" }}>
       <h1 className="title">Turtle Draw</h1>
@@ -28,6 +29,6 @@ function AppBar() {
       </Button>
     </Header>
   );
-}
+};
 
 export default AppBar;

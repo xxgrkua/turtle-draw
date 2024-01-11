@@ -4,9 +4,10 @@ import AppBar from "../AppBar";
 import SideBar from "../SideBar";
 import Tab from "../Tab";
 
+import React from "react";
 import "./style.css";
 
-function Main() {
+const Main: React.FC = function () {
   return (
     <Layout>
       <AppBar />
@@ -18,6 +19,6 @@ function Main() {
       </Layout>
     </Layout>
   );
-}
+};
 
 export default Main;

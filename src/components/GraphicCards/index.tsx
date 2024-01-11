@@ -1,8 +1,9 @@
 import { Card, Col, Row } from "antd";
 
+import React from "react";
 import "./style.css";
 
-function GraphicCards() {
+const GraphicCards: React.FC = function () {
   return (
     <Row>
       <Col xs={6}>
@@ -27,6 +28,6 @@ function GraphicCards() {
       </Col>
     </Row>
   );
-}
+};
 
 export default GraphicCards;

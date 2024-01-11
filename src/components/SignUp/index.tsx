@@ -2,10 +2,11 @@ import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { LoginForm, ProFormText } from "@ant-design/pro-components";
 import { ConfigProvider, Space, theme } from "antd";
 import enUS from "antd/locale/en_US";
+import React from "react";
 import { Link } from "react-router-dom";
 import "./style.css";
 
-const SignUp = () => {
+const SignUp: React.FC = () => {
   const { token } = theme.useToken();
   const submitter = {
     searchConfig: {
