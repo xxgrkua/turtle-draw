@@ -7,10 +7,14 @@ import Tab from "../Tab";
 import React from "react";
 import "./style.css";
 
-const Main: React.FC = function () {
+interface MainProps {
+  isLoggedIn: boolean;
+}
+
+const Main: React.FC<MainProps> = function ({ isLoggedIn }) {
   return (
     <Layout>
-      <AppBar />
+      <AppBar isLoggedIn={isLoggedIn} />
       <Layout>
         <SideBar />
         <Layout>

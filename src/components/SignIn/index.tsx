@@ -9,12 +9,27 @@ import enUS from "antd/locale/en_US";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
+import axios from "axios";
 import "./style.css";
 
-const SignIn: React.FC = () => {
+interface SignInProps {
+  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
   const { token } = theme.useToken();
 
+  const submit = function () {
+    axios
+      .post("/user")
+      .then(() => {
+        setLoggedIn(true);
+      })
+      .catch(() => {});
+  };
+
   const submitter = {
+    onSubmit: submit,
     searchConfig: {
       submitText: "Sign in",
     },

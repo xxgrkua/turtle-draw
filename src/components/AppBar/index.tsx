@@ -6,7 +6,11 @@ import "./style.css";
 
 const { Header } = Layout;
 
-const AppBar: React.FC = function () {
+interface AppBarProps {
+  isLoggedIn: boolean;
+}
+
+const AppBar: React.FC<AppBarProps> = function ({ isLoggedIn }) {
   return (
     <Header style={{ display: "flex", alignItems: "center" }}>
       <h1 className="title">Turtle Draw</h1>
@@ -21,12 +25,18 @@ const AppBar: React.FC = function () {
       <Button type="link">
         <Link to="/gallery">Gallery</Link>
       </Button>
-      <Button type="link">
-        <Link to="/signin">Sign in</Link>
-      </Button>
-      <Button type="link">
-        <Link to="/signup">Sign up</Link>
-      </Button>
+      {isLoggedIn ? (
+        <Button></Button>
+      ) : (
+        <React.Fragment>
+          <Button type="link">
+            <Link to="/signin">Sign in</Link>
+          </Button>
+          <Button type="link">
+            <Link to="/signup">Sign up</Link>
+          </Button>
+        </React.Fragment>
+      )}
     </Header>
   );
 };

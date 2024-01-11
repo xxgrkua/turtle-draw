@@ -6,11 +6,15 @@ import "./style.css";
 
 const { Content } = Layout;
 
-const SignInPage: React.FC = () => {
+interface SignInPageProps {
+  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const SignInPage: React.FC<SignInPageProps> = ({ setLoggedIn }) => {
   return (
     <Layout>
       <Content className="login-background">
-        <SignIn />
+        <SignIn setLoggedIn={setLoggedIn} />
       </Content>
     </Layout>
   );
