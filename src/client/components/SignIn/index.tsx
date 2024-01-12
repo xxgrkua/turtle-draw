@@ -18,12 +18,19 @@ interface SignInProps {
 
 const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
   const { token } = theme.useToken();
+  const [loginName, setLoginName] = useState("");
+  const [password, setPassword] = useState("");
+  const [checked, setChecked] = useState(true);
+
+  const handleChecked = () => {
+    setChecked(!checked);
+  };
 
   const submit = function () {
     axios
       .post("/user/login", {
-        login_name: "ian",
-        password: "weak",
+        login_name: loginName,
+        password: password,
       })
       .then(() => {
         setLoggedIn(true);
@@ -36,12 +43,6 @@ const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
     searchConfig: {
       submitText: "Sign in",
     },
-  };
-
-  const [checked, setChecked] = useState(true);
-
-  const handleChange = () => {
-    setChecked(!checked);
   };
 
   return (
@@ -66,6 +67,10 @@ const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
           fieldProps={{
             size: "large",
             prefix: <UserOutlined className={"prefixIcon"} />,
+            value: loginName,
+            onChange: (event) => {
+              setLoginName(event.currentTarget.value);
+            },
           }}
           placeholder="Username"
           rules={[
@@ -80,6 +85,10 @@ const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
           fieldProps={{
             size: "large",
             prefix: <LockOutlined className={"prefixIcon"} />,
+            value: password,
+            onChange: (event) => {
+              setPassword(event.currentTarget.value);
+            },
           }}
           placeholder="Password"
           rules={[
@@ -97,7 +106,7 @@ const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
           <ProFormCheckbox
             noStyle
             name="autoLogin"
-            fieldProps={{ checked: checked, onChange: handleChange }}
+            fieldProps={{ checked: checked, onChange: handleChecked }}
           >
             Remember me
           </ProFormCheckbox>
