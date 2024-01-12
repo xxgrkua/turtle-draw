@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ant-design/pro-components": "^2.6.43",
+    "@types/express-session": "^1.17.10",
     "antd": "^5.12.8",
     "axios": "^1.6.5",
     "body-parser": "^1.20.2",

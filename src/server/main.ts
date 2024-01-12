@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Response, Request } from "express";
 import ViteExpress from "vite-express";
 import session from "express-session";
 import mongoose from "mongoose";
@@ -7,7 +7,7 @@ import bodyParser from "body-parser";
 
 const portno = 5000; // Port number to use
 
-function isAuthenticated(request, response, next) {
+function isAuthenticated(request: Request, response: Response, next) {
   if (request.session.user_id && request.session.username) {
     next();
   } else {
