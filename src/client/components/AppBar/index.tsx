@@ -30,10 +30,10 @@ const AppBar: React.FC<AppBarProps> = function ({ isLoggedIn }) {
       ) : (
         <React.Fragment>
           <Button type="link">
-            <Link to="/signin">Sign in</Link>
+            <Link to="/login">Sign in</Link>
           </Button>
           <Button type="link">
-            <Link to="/signup">Sign up</Link>
+            <Link to="/register">Sign up</Link>
           </Button>
         </React.Fragment>
       )}

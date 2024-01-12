@@ -21,7 +21,10 @@ const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
 
   const submit = function () {
     axios
-      .post("/user")
+      .post("/user/login", {
+        login_name: "ian",
+        password: "weak",
+      })
       .then(() => {
         setLoggedIn(true);
       })

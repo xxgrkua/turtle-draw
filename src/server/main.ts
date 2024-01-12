@@ -2,13 +2,10 @@ import express from "express";
 import ViteExpress from "vite-express";
 import session from "express-session";
 import mongoose from "mongoose";
+import User from "../../schema/user";
+import bodyParser from "body-parser";
 
 const portno = 5000; // Port number to use
-
-mongoose.set("strictQuery", false);
-// mongoose.connect("mongodb://127.0.0.1/turtle-draw", {
-//   useUnifiedTopology: true,
-// });
 
 function isAuthenticated(request, response, next) {
   if (request.session.user_id && request.session.username) {
@@ -19,6 +16,8 @@ function isAuthenticated(request, response, next) {
 }
 
 const app = express();
+
+app.use(bodyParser.json());
 
 app.use(
   session({
@@ -46,7 +45,45 @@ app.put("/user", isAuthenticated, async function (request, response) {});
 app.delete("/user", isAuthenticated, async function (request, response) {});
 
 // user login
-app.post("/user/login", async function (request, response) {});
+app.post("/user/login", async function (request, response, next) {
+  try {
+    const user = await User.findOne({
+      login_name: request.body.login_name,
+    }).exec();
+    if (user) {
+      if (request.body.password !== user.password) {
+        throw Error(request.body.password);
+      }
+      request.session.regenerate(function (error) {
+        if (error) {
+          next(error);
+        }
+
+        request.session.user_id = user._id;
+        request.session.username = user.first_name;
+
+        request.session.save(function (err) {
+          if (err) {
+            next(err);
+          }
+
+          response.json({
+            res: "success",
+            _id: user._id,
+            username: user.first_name,
+          });
+        });
+      });
+    } else {
+      throw Error(request.body.login_name);
+    }
+  } catch (error) {
+    response.status(400).json({
+      res: "error",
+      msg: `${request.body.login_name} doesn't exist or password is wrong`,
+    });
+  }
+});
 
 // user logout
 app.post(
@@ -80,6 +117,14 @@ app.delete(
   async function (request, response) {},
 );
 
-const server = app.listen(portno, function () {});
-
-ViteExpress.bind(app, server);
+mongoose.set("strictQuery", false);
+mongoose
+  .connect("mongodb://127.0.0.1/turtle-draw")
+  .then(() => {
+    ViteExpress.listen(app, portno, () => {
+      console.log("Server is listening on port 5000...");
+    });
+  })
+  .catch(() => {
+    console.log("error to connect to database");
+  });
