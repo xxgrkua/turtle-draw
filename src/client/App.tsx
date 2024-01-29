@@ -19,7 +19,7 @@ const App: React.FC = () => {
           element={<Main isLoggedIn={isLoggedIn} />}
           errorElement={<ErrorPage />}
         />
-        <Route path="gallery/" element={<Gallery />} />
+        <Route path="gallery/" element={<Gallery isLoggedIn={isLoggedIn} />} />
         {isLoggedIn ? (
           <Route path="login/" element={<Navigate to="/" replace />} />
         ) : (

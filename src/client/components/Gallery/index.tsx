@@ -6,10 +6,14 @@ import React from "react";
 import GraphicCards from "../GraphicCards";
 import "./style.css";
 
-const Gallery: React.FC = function () {
+interface GalleryProps {
+  isLoggedIn: boolean;
+}
+
+const Gallery: React.FC<GalleryProps> = function ({ isLoggedIn }) {
   return (
     <Layout>
-      <AppBar />
+      <AppBar isLoggedIn={isLoggedIn} />
       <GraphicCards />
     </Layout>
   );
