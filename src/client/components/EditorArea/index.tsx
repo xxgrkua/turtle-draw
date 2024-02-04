@@ -26,6 +26,8 @@ function EditorArea(): React.ReactElement {
             <AceEditor
               value={code}
               // mode="java"
+              height="100%"
+              width="100%"
               tabSize={2}
               onChange={setCode}
               setOptions={{
@@ -46,7 +48,7 @@ function EditorArea(): React.ReactElement {
               background: colorBgContainer,
             }}
           >
-            {code}
+            {/* {code} */}
             <canvas></canvas>
           </Content>
         </Layout>

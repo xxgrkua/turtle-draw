@@ -4,8 +4,10 @@ import session from "express-session";
 import mongoose from "mongoose";
 import User from "../../schema/user";
 import bodyParser from "body-parser";
+import development_config from "../../config/development";
+import production_config from "../../config/production";
 
-const portno = 5000; // Port number to use
+let config;
 
 function isAuthenticated(request: Request, response: Response, next) {
   if (request.session.user_id && request.session.username) {
@@ -124,12 +126,18 @@ app.delete(
   async function (request, response) {},
 );
 
+if (app.settings.env == "production") {
+  config = production_config;
+} else {
+  config = development_config;
+}
+
 mongoose.set("strictQuery", false);
 mongoose
-  .connect("mongodb://127.0.0.1/turtle-draw")
+  .connect(config.DATABASE_URL)
   .then(() => {
-    ViteExpress.listen(app, portno, () => {
-      console.log("Server is listening on port 5000...");
+    ViteExpress.listen(app, config.PORT, () => {
+      console.log(`Server is listening on port ${config.PORT}...`);
     });
   })
   .catch(() => {

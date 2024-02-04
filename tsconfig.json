@@ -23,8 +23,9 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "src",
+    "config",
     "schema",
+    "src",
   ],
   "exclude": [
     "src/server"
