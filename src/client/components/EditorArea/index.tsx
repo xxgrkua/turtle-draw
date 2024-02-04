@@ -1,41 +1,17 @@
-import { RightOutlined, SendOutlined } from "@ant-design/icons";
-import { Col, Input, Layout, Row, Typography, theme } from "antd";
-import React, { useState } from "react";
+import { Col, Layout, Row, theme } from "antd";
+import React from "react";
+import AceEditor from "react-ace";
 
 import "./style.css";
 
 const { Content } = Layout;
 
-const { Paragraph } = Typography;
-
-function EditorArea() {
+function EditorArea(): React.ReactElement {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
 
-  const [history, setHistory] = useState<string[]>([]);
-  const [inputValue, setInputValue] = useState("");
-
-  const handleSend = () => {
-    const newHistory = [...history];
-    newHistory.push(inputValue);
-    setHistory(newHistory);
-    setInputValue("");
-  };
-
-  const handleEnter = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const { key } = event;
-    if (key === "Enter") {
-      const newHistory = [...history];
-      newHistory.push(inputValue);
-      setHistory(newHistory);
-      setInputValue("");
-    }
-  };
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(event.target.value);
-  };
+  const [code, setCode] = React.useState("");
 
   return (
     <Row gutter={8}>
@@ -47,34 +23,19 @@ function EditorArea() {
               background: colorBgContainer,
             }}
           >
-            <Typography>
-              {history.map((value) => {
-                return <Paragraph key={value}>{value}</Paragraph>;
-              })}
-            </Typography>
+            <AceEditor
+              value={code}
+              // mode="java"
+              tabSize={2}
+              onChange={setCode}
+              setOptions={{
+                enableBasicAutocompletion: false,
+                enableLiveAutocompletion: false,
+                enableSnippets: false,
+                showLineNumbers: true,
+              }}
+            />
           </Content>
-        </Layout>
-        <Layout className="input-area">
-          <Input
-            className="editor-input"
-            placeholder="Press 'Enter' to draw"
-            prefix={<RightOutlined />}
-            suffix={
-              <SendOutlined
-                onClick={() => {
-                  handleSend();
-                }}
-              />
-            }
-            size="large"
-            value={inputValue}
-            onChange={(event) => {
-              handleChange(event);
-            }}
-            onKeyDown={(event) => {
-              handleEnter(event);
-            }}
-          />
         </Layout>
       </Col>
       <Col span={12}>
@@ -85,7 +46,7 @@ function EditorArea() {
               background: colorBgContainer,
             }}
           >
-            Canvas
+            {code}
             <canvas></canvas>
           </Content>
         </Layout>

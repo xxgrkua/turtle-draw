@@ -1,12 +1,8 @@
 .main-editor {
-  height: calc(100vh - 159px);
-  padding: 24px;
+  height: calc(100vh - 119px);
+  padding: 0;
   margin: 0;
 }
-
-/* .input-area {
-  padding: 12px calc((100vw - 200px - 720px)/2);
-} */
 
 .editor-input {
   position: sticky;

@@ -17,6 +17,13 @@ function isAuthenticated(request: Request, response: Response, next) {
 
 const app = express();
 
+app.use("/robots.txt", function (request, response) {
+  response.type("text/plain");
+  response.send(
+    "User-agent: *\nUser-agent: Adsbot-Google\nUser-agent: Adsbot-Google-Mobile\nUser-agent: Mediapartners-Google\nDisallow: /",
+  );
+});
+
 app.use(bodyParser.json());
 
 app.use(
