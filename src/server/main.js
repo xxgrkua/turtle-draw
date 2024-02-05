@@ -4,9 +4,9 @@ import session from "express-session";
 import mongoose from "mongoose";
 import ViteExpress from "vite-express";
 
-import development_config from "../../config/development";
-import production_config from "../../config/production";
-import User from "../../schema/user";
+import development_config from "../../config/development.js";
+import production_config from "../../config/production.js";
+import User from "../../schema/user.js";
 
 let config;
 

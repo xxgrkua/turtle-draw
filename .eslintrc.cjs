@@ -11,6 +11,10 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   overrides: [
     {
+      files: ["src/server/**/*.js"],
+      env: { node: true, es2020: true },
+    },
+    {
       files: ["**/*.ts", "**/*.tsx"],
       extends: [
         "eslint:recommended",
