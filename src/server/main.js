@@ -1,15 +1,16 @@
-import express, { Response, Request } from "express";
-import ViteExpress from "vite-express";
+import bodyParser from "body-parser";
+import express from "express";
 import session from "express-session";
 import mongoose from "mongoose";
-import User from "../../schema/user";
-import bodyParser from "body-parser";
+import ViteExpress from "vite-express";
+
 import development_config from "../../config/development";
 import production_config from "../../config/production";
+import User from "../../schema/user";
 
 let config;
 
-function isAuthenticated(request: Request, response: Response, next) {
+function isAuthenticated(request, response, next) {
   if (request.session.user_id && request.session.username) {
     next();
   } else {
