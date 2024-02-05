@@ -12,7 +12,7 @@ interface GalleryProps {
 
 const Gallery: React.FC<GalleryProps> = function ({ isLoggedIn }) {
   return (
-    <Layout>
+    <Layout style={{ minHeight: "100vh" }}>
       <AppBar isLoggedIn={isLoggedIn} />
       <GraphicCards />
     </Layout>

@@ -1,32 +1,36 @@
-import { Card, Col, Row } from "antd";
+import { Card, Flex } from "antd";
 
 import React from "react";
 import "./style.css";
 
+const { Meta } = Card;
+
 const GraphicCards: React.FC = function () {
   return (
-    <Row>
-      <Col xs={6}>
-        <Card title="Card title" bordered={false}>
-          Card content
+    <div style={{ padding: 50 }}>
+      <Flex wrap="wrap" align="center" justify="space-evenly">
+        <Card
+          hoverable
+          style={{ width: 300 }}
+          cover={<img alt="img" src="images/2222.png" />}
+        >
+          <Meta title="Sierpinski triangle" description="@Tanaka" />
         </Card>
-      </Col>
-      <Col sm={6}>
-        <Card title="Card title" bordered={false}>
-          Card content
+        <Card
+          hoverable
+          style={{ width: 300 }}
+          cover={<img alt="img" src="images/3333.png" />}
+        >
+          <Meta title="Koch curve" description="@Takahashi" />
         </Card>
-      </Col>
-      <Col sm={6}>
-        <Card title="Card title" bordered={false}>
-          Card content
+        {/* <Card hoverable style={{ width: 300 }}>
+          <Meta title="Europe Street beat" description="www.instagram.com" />
         </Card>
-      </Col>
-      <Col sm={6}>
-        <Card title="Card title" bordered={false}>
-          Card content
-        </Card>
-      </Col>
-    </Row>
+        <Card hoverable style={{ width: 300 }}>
+          <Meta title="Europe Street beat" description="www.instagram.com" />
+        </Card> */}
+      </Flex>
+    </div>
   );
 };
 

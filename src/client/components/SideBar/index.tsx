@@ -1,39 +1,35 @@
-import {
-  LaptopOutlined,
-  NotificationOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { ProductOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Layout, Menu, theme } from "antd";
-import React from "react";
 
+import React from "react";
 import "./style.css";
 
 const { Sider } = Layout;
 
 const items2: MenuProps["items"] = [
-  UserOutlined,
-  LaptopOutlined,
-  NotificationOutlined,
+  ProductOutlined,
+  ProductOutlined,
+  ProductOutlined,
 ].map((icon, index) => {
   const key = String(index + 1);
 
   return {
     key: `sub${key}`,
     icon: React.createElement(icon),
-    label: `subnav ${key}`,
+    label: `Workspace ${key}`,
 
     children: new Array(4).fill(null).map((_, j) => {
       const subKey = index * 4 + j + 1;
       return {
         key: subKey,
-        label: `option${subKey}`,
+        label: `File ${subKey}`,
       };
     }),
   };
 });
 
-function SideBar() {
+function SideBar(): React.ReactElement {
   const {
     token: { colorBgContainer },
   } = theme.useToken();
