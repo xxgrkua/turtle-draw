@@ -23,8 +23,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": [
-    "config",
-    "schema",
     "src",
   ],
   "exclude": [
