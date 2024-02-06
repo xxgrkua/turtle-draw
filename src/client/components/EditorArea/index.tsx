@@ -6,6 +6,15 @@ import "./style.css";
 
 const { Content } = Layout;
 
+interface ConsoleOutputProps {
+  history: string[];
+}
+
+const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ history }) => {
+  console.log(history);
+  return <div></div>;
+};
+
 function EditorArea(): React.ReactElement {
   const {
     token: { colorBgContainer },
@@ -30,6 +39,9 @@ function EditorArea(): React.ReactElement {
               width="100%"
               tabSize={2}
               onChange={setCode}
+              onLoad={(editor) => {
+                editor.focus();
+              }}
               setOptions={{
                 enableBasicAutocompletion: false,
                 enableLiveAutocompletion: false,

@@ -1,10 +1,8 @@
 import { Layout } from "antd";
-
+import React from "react";
 import AppBar from "../AppBar";
 import SideBar from "../SideBar";
 import Tab from "../Tab";
-
-import React from "react";
 import "./style.css";
 
 interface MainProps {
