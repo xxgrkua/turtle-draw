@@ -25,7 +25,10 @@
     "react-dom": "^18.2.0",
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.21.2",
-    "vite-express": "^0.13.0"
+    "rust-scheme": "file:./rust/pkg",
+    "vite-express": "^0.13.0",
+    "vite-plugin-top-level-await": "^1.4.1",
+    "vite-plugin-wasm": "^3.3.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

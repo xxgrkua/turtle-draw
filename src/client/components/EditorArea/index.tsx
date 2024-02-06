@@ -2,6 +2,7 @@ import { Col, Layout, Row, theme } from "antd";
 import React from "react";
 import AceEditor from "react-ace";
 
+import Terminal from "../Terminal";
 import "./style.css";
 
 const { Content } = Layout;
@@ -61,6 +62,7 @@ function EditorArea(): React.ReactElement {
             }}
           >
             {/* {code} */}
+            <Terminal />
             <canvas></canvas>
           </Content>
         </Layout>
