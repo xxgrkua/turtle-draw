@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - hal-shushoku2024
+name: Build and deploy app to Azure Web App
 
 on:
   push:
@@ -15,6 +15,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: test wasm
+        working-directory: ./rust
+        run: |
+          cargo test --verbose
+          wasm-pack test --headless --chrome
+          wasm-pack test --headless --firefox
+
+      - name: build wasm
+        working-directory: ./rust
+        run: wasm-pack build --release
 
       - name: Set up Node.js version
         uses: actions/setup-node@v3
@@ -53,7 +67,7 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-      
+
       - name: Login to Azure
         uses: azure/login@v1
         with:
@@ -68,4 +82,3 @@ jobs:
           app-name: 'hal-shushoku2024'
           slot-name: 'Production'
           package: .
-          
