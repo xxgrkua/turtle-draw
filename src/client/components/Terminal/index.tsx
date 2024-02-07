@@ -1,6 +1,6 @@
 import React from "react";
 
-import { scheme_eval_wasm } from "../../../../rust/pkg/rust_scheme.js";
+import { scheme_eval_wasm } from "rust-scheme";
 
 const Terminal: React.FC = () => {
   const [input, setInput] = React.useState<string>("");
