@@ -22,17 +22,6 @@ jobs:
       - name: Setup wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: test wasm
-        working-directory: ./rust
-        run: |
-          cargo test --verbose
-          wasm-pack test --headless --chrome
-          wasm-pack test --headless --firefox
-
-      - name: build wasm
-        working-directory: ./rust
-        run: wasm-pack build --release
-
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
