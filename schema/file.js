@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
-const terminalSchema = new mongoose.Schema({
-  _id: false,
-  history: [String],
-  current: String,
-});
+// const terminalSchema = new mongoose.Schema({
+//   _id: false,
+//   history: [String],
+//   current: String,
+// });
 
 const graphicSchema = new mongoose.Schema({
   _id: false,
@@ -14,7 +14,7 @@ const graphicSchema = new mongoose.Schema({
 const fileSchema = new mongoose.Schema({
   name: String,
   content: String,
-  terminal: terminalSchema,
+  // terminal: terminalSchema,
   graphic: graphicSchema,
   user_id: mongoose.Schema.Types.ObjectId,
 });
