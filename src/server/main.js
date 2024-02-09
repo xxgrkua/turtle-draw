@@ -1,6 +1,8 @@
 import bodyParser from "body-parser";
+import compression from "compression";
 import express from "express";
 import session from "express-session";
+import helmet from "helmet";
 import mongoose from "mongoose";
 import ViteExpress from "vite-express";
 
@@ -19,6 +21,19 @@ function isAuthenticated(request, response, next) {
 }
 
 const app = express();
+
+app.use(compression());
+// vite doesn't support INLINE_RUNTIME_CHUNK=false as create-react-app
+// we need "wasm-unsafe-eval" to run wasm
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "script-src": ["'self'", "'unsafe-inline'", "'wasm-unsafe-eval'"],
+      },
+    },
+  }),
+);
 
 app.use("/robots.txt", function (request, response) {
   response.type("text/plain");

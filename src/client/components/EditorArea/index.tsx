@@ -2,6 +2,8 @@ import { Col, Layout, Row, theme } from "antd";
 import React from "react";
 import AceEditor from "react-ace";
 
+import "ace-builds/src-noconflict/mode-scheme";
+
 import Terminal from "../Terminal";
 import "./style.css";
 
@@ -26,7 +28,7 @@ function EditorArea(): React.ReactElement {
           >
             <AceEditor
               value={code}
-              // mode="java"
+              mode="scheme"
               height="100%"
               width="100%"
               tabSize={2}
@@ -34,10 +36,10 @@ function EditorArea(): React.ReactElement {
               onLoad={(editor) => {
                 editor.focus();
               }}
+              enableBasicAutocompletion={false}
+              enableLiveAutocompletion={false}
+              enableSnippets={false}
               setOptions={{
-                enableBasicAutocompletion: false,
-                enableLiveAutocompletion: false,
-                enableSnippets: false,
                 showLineNumbers: true,
               }}
             />
