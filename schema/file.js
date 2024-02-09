@@ -1,11 +1,13 @@
 import mongoose from "mongoose";
 
 const terminalSchema = new mongoose.Schema({
+  _id: false,
   history: [String],
   current: String,
 });
 
 const graphicSchema = new mongoose.Schema({
+  _id: false,
   content: String,
 });
 
