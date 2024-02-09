@@ -133,7 +133,6 @@ if (app.settings.env == "production") {
   config = development_config;
 }
 
-mongoose.set("strictQuery", false);
 mongoose
   .connect(config.DATABASE_URL)
   .then(() => {
