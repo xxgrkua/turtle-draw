@@ -7,16 +7,28 @@ module.exports = {
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
   ],
-  ignorePatterns: ["dist", ".eslintrc.cjs"],
+  ignorePatterns: ["dist", ".eslintrc.cjs", "vite.config.ts"],
   parser: "@typescript-eslint/parser",
   parserOptions: { ecmaVersion: "latest", sourceType: "module" },
   overrides: [
     {
-      files: ["src/server/**/*.js"],
+      files: ["src/server/**/*.js", "scripts/**/*.js"],
       env: { node: true, es2020: true },
     },
     {
-      files: ["**/*.ts", "**/*.tsx"],
+      files: ["src/server/**/*.ts", "scripts/**/*.ts"],
+      env: { node: true, es2020: true },
+      extends: [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/strict-type-checked",
+      ],
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
+    },
+    {
+      files: ["src/client/**/*.ts", "src/client/**/*.tsx"],
       extends: [
         "eslint:recommended",
         "plugin:@typescript-eslint/strict-type-checked",
