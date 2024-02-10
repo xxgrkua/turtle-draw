@@ -15,7 +15,11 @@ let store: session.Store;
 
 const MongoDBStore = ConnectMongoDBSession(session);
 
-function isAuthenticated(request, response, next) {
+function isAuthenticated(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
   if (request.session.user_id && request.session.username) {
     next();
   } else {
