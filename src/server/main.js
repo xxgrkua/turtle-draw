@@ -1,4 +1,3 @@
-import bodyParser from "body-parser";
 import compression from "compression";
 import express from "express";
 import session from "express-session";
@@ -6,9 +5,9 @@ import helmet from "helmet";
 import mongoose from "mongoose";
 import ViteExpress from "vite-express";
 
+import User from "model/user.js";
 import development_config from "../../config/development.js";
 import production_config from "../../config/production.js";
-import User from "../../schema/user.js";
 
 let config;
 
@@ -42,7 +41,7 @@ app.use("/robots.txt", function (request, response) {
   );
 });
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.use(
   session({
@@ -148,6 +147,7 @@ if (app.settings.env == "production") {
   config = development_config;
 }
 
+mongoose.set("strictQuery", false);
 mongoose
   .connect(config.DATABASE_URL)
   .then(() => {
