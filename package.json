@@ -10,7 +10,7 @@
     "dev": "concurrently \"npm:dev-*\"",
     "dev-server": "nodemon -w server/src -x tsx server/src/app.ts",
     "dev-build": "nodemon -w rust/src -x wasm-pack build ./rust --dev",
-    "start": "tsx server/src/app.ts",
+    "start": "NODE_ENV=production node --import tsx server/src/app.ts",
     "build": "wasm-pack build ./rust --release && tsc && vite build",
     "lint": "eslint . --ext ts,tsx,js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -36,9 +36,7 @@
     "react-router-dom": "^6.21.2",
     "rust-scheme": "file:./rust/pkg",
     "tsx": "^4.7.1",
-    "vite-express": "^0.13.0",
-    "vite-plugin-top-level-await": "^1.4.1",
-    "vite-plugin-wasm": "^3.3.0"
+    "vite-express": "^0.13.0"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",
@@ -57,6 +55,8 @@
     "nodemon": "^3.0.2",
     "prettier": "^3.1.1",
     "typescript": "^5.2.2",
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "vite-plugin-top-level-await": "^1.4.1",
+    "vite-plugin-wasm": "^3.3.0"
   }
 }

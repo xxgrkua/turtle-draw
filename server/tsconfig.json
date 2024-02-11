@@ -4,20 +4,23 @@
     "useDefineForClassFields": true,
     "lib": [
       "ES2020",
-      "DOM",
-      "DOM.Iterable"
     ],
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
     "allowArbitraryExtensions": true,
     "verbatimModuleSyntax": true,
     "allowSyntheticDefaultImports": true,
+    "sourceMap": true
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
   },
   "include": [
-    "src",
+    "src/**/*.ts",
   ]
 }
