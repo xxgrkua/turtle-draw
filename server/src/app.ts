@@ -7,6 +7,7 @@ import ViteExpress from "vite-express";
 
 import CONFIG from "../../config";
 import errorHandler from "./controllers/error";
+import notFound from "./controllers/notfound";
 import { User } from "./models";
 import apiRouter from "./routes/api";
 
@@ -149,13 +150,7 @@ app.delete(
   async function (request, response) {},
 );
 
-app.use(async (request, response, next) => {
-  if (request.method === "GET") {
-    next();
-  } else {
-    next("qqqq");
-  }
-});
+app.use(notFound);
 app.use(errorHandler);
 
 mongoose.set("strictQuery", false);

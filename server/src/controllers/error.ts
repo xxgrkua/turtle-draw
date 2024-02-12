@@ -1,15 +1,25 @@
 import express from "express";
+import HttpError from "../http_error";
 
 async function errorHandler(
-  error: Error,
+  error: any,
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
 ) {
-  console.log(typeof error);
+  if (!(error instanceof HttpError)) {
+    if (error instanceof Error) {
+      error = new HttpError(500);
+    } else {
+      error = new HttpError(500, error);
+    }
+  }
   console.log(error);
-  response.status(500).json({ res: "error", msg: error.message });
-  next(error);
+  if (error.message) {
+    response.status(error.status).json({ error: error.message });
+  } else {
+    response.status(error.status).end();
+  }
 }
 
 export default errorHandler;
