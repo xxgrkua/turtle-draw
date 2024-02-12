@@ -9,9 +9,9 @@ interface IWorkspace {
 
 const workspaceSchema = new Schema<IWorkspace>({
   name: { type: String, required: true },
-  files: { type: [Schema.Types.ObjectId], required: true },
-  opened_files: { type: [Schema.Types.ObjectId], required: true },
-  active_file: { type: Schema.Types.ObjectId, required: true },
+  files: [{ type: Schema.Types.ObjectId, required: true, ref: "File" }],
+  opened_files: [{ type: Schema.Types.ObjectId, required: true, ref: "File" }],
+  active_file: { type: Schema.Types.ObjectId, required: true, ref: "File" },
 });
 
 interface IWorkbench {
@@ -22,7 +22,7 @@ interface IWorkbench {
 
 const workbenchSchema = new Schema<IWorkbench>({
   user_id: { type: Schema.Types.ObjectId, required: true },
-  workspaces: { type: [workspaceSchema], required: true },
+  workspaces: [{ type: workspaceSchema, required: true }],
   active_workspace: { type: Schema.Types.ObjectId, required: true },
 });
 

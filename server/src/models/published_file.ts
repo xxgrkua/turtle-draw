@@ -14,9 +14,9 @@ const publishedFileSchema = new Schema<IPublishedFile>({
   title: { type: String, required: true },
   description: { type: String },
   image: { type: String, required: true },
-  author_id: { type: Schema.Types.ObjectId, required: true },
+  author_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
   author: { type: String, required: true },
-  file_id: { type: Schema.Types.ObjectId, required: true },
+  file_id: { type: Schema.Types.ObjectId, required: true, ref: "File" },
   date: { type: Date, default: Date.now },
 });
 

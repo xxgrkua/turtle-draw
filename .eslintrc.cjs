@@ -12,11 +12,6 @@ module.exports = {
   parserOptions: { ecmaVersion: "latest", sourceType: "module" },
   overrides: [
     {
-      files: ["src/server/**/*.js", "scripts/**/*.js"],
-      env: { node: true, es2020: true },
-    },
-    {
-      files: ["server/src/**/*.ts", "scripts/**/*.ts"],
       env: { node: true, es2020: true },
       extends: [
         "eslint:recommended",
@@ -25,14 +20,13 @@ module.exports = {
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
-        project: ["./server/tsconfig.json"],
+        project: ["./server/tsconfig.json", "./tsconfig.node.json"],
       },
       rules: {
         "no-unsafe-member-access": "off",
       },
     },
     {
-      files: ["src/client/**/*.ts", "src/client/**/*.tsx"],
       extends: [
         "eslint:recommended",
         "plugin:@typescript-eslint/strict-type-checked",

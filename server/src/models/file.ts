@@ -30,7 +30,7 @@ const fileSchema = new Schema<IFile>({
   content: { type: String, required: true },
   // terminal: terminalSchema,
   graphic: { type: graphicSchema, required: true },
-  user_id: { type: Schema.Types.ObjectId, required: true },
+  user_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
 });
 
 const File = mongoose.model<IFile>("File", fileSchema);

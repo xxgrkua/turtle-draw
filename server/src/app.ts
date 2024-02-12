@@ -1,19 +1,14 @@
 import compression from "compression";
-import ConnectMongoDBSession from "connect-mongodb-session";
 import express from "express";
 import session from "express-session";
 import helmet from "helmet";
 import mongoose from "mongoose";
 import ViteExpress from "vite-express";
 
-import development_config from "../../config/development.js";
-import production_config from "../../config/production.js";
-import User from "./model/user.ts";
-
-let config;
-let store: session.Store;
-
-const MongoDBStore = ConnectMongoDBSession(session);
+import CONFIG from "../../config";
+import errorHandler from "./controllers/error";
+import { User } from "./models";
+import apiRouter from "./routes/api";
 
 function isAuthenticated(
   request: express.Request,
@@ -28,18 +23,6 @@ function isAuthenticated(
 }
 
 const app = express();
-
-if (app.settings.env == "production") {
-  config = production_config;
-  store = new MongoDBStore({
-    uri: config.DATABASE_URL,
-    databaseName: config.DATABASE_NAME,
-    collection: "sessions",
-  });
-} else {
-  config = development_config;
-  store = new session.MemoryStore();
-}
 
 app.use(compression());
 // vite doesn't support INLINE_RUNTIME_CHUNK=false as create-react-app
@@ -68,9 +51,11 @@ app.use(
     secret: "secret key for app",
     resave: false,
     saveUninitialized: false,
-    store: store,
+    store: CONFIG.store,
   }),
 );
+
+app.use("/api", apiRouter);
 
 // get other user
 app.get("/user/:userId", async function (request, response) {});
@@ -107,7 +92,7 @@ app.post("/user/login", async function (request, response, next) {
         }
 
         request.session.user_id = user._id;
-        request.session.username = user.first_name;
+        request.session.login_name = user.login_name;
 
         request.session.save(function (err) {
           if (err) {
@@ -117,7 +102,7 @@ app.post("/user/login", async function (request, response, next) {
           response.json({
             res: "success",
             _id: user._id,
-            username: user.first_name,
+            username: user.login_name,
           });
         });
       });
@@ -164,14 +149,29 @@ app.delete(
   async function (request, response) {},
 );
 
+app.use(async (request, response, next) => {
+  if (request.method === "GET") {
+    next();
+  } else {
+    next("qqqq");
+  }
+});
+app.use(errorHandler);
+
 mongoose.set("strictQuery", false);
-mongoose
-  .connect(config.DATABASE_URL)
-  .then(() => {
-    ViteExpress.listen(app, config.PORT, () => {
-      console.log(`Server is listening on port ${config.PORT}...`);
-    });
-  })
-  .catch(() => {
-    console.log("error to connect to database");
+
+async function main() {
+  await mongoose.connect(CONFIG.database_url);
+
+  // Wait for model's indexes to finish.
+  // Then attempts to save duplicates will correctly error.
+  // ref: https://mongoosejs.com/docs/faq.html#unique-doesnt-work
+
+  ViteExpress.listen(app, CONFIG.port, () => {
+    console.log(`Server is listening on port ${CONFIG.port}...`);
   });
+}
+
+main().catch((error) => {
+  console.log(error);
+});

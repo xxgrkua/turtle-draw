@@ -14,7 +14,8 @@
     "allowArbitraryExtensions": true,
     "verbatimModuleSyntax": true,
     "allowSyntheticDefaultImports": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "strictNullChecks": true
   },
   "ts-node": {
     "esm": true,
