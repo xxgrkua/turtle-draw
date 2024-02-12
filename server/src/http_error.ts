@@ -11,7 +11,7 @@ class HttpError extends Error {
   }
 
   public toString(): string {
-    return `${this.name}: ${this.status} ${this.message}`;
+    return `${this.name} ${this.status}: ${this.message}`;
   }
 }
 
