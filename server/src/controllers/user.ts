@@ -4,20 +4,23 @@ import express from "express";
 import HttpError from "../http_error";
 import { User } from "../models";
 
-async function get(
+export async function get(
   req: express.Request,
   res: express.Response,
   next: express.NextFunction,
 ) {
   try {
-    const user = await User.findById(req.params.userId).exec();
+    const user = await User.findOne(
+      { username: req.params.username },
+      "username nickname published_files",
+    ).exec();
     res.json(user);
   } catch (error) {
-    next(error);
+    next(new HttpError({ status: 500, cause: error }));
   }
 }
 
-async function login(
+export async function login(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -30,25 +33,34 @@ async function login(
       },
       "username password_digest",
     ).exec();
-    if (user && (await argon2.verify(user.password_digest, password))) {
-      request.session.regenerate(function (error) {
-        if (error) {
-          next(error);
-        }
-        request.session.user_id = user._id;
-        request.session.username = user.username;
-        request.session.save(function (err) {
-          if (err) {
-            next(err);
+    if (user) {
+      if (await argon2.verify(user.password_digest, password)) {
+        request.session.regenerate(function (error) {
+          if (error) {
+            next(error);
           }
-          response.json({ username: user.username });
+          request.session.user_id = user._id;
+          request.session.username = user.username;
+          request.session.save(function (err) {
+            if (err) {
+              next(err);
+            }
+            response.json({ username: user.username });
+          });
         });
-      });
+      } else {
+        next(
+          new HttpError({
+            status: 400,
+            message: "password is incorrect",
+          }),
+        );
+      }
     } else {
       next(
         new HttpError({
           status: 400,
-          message: "user doesn't exist or password is wrong",
+          message: "user doesn't exist",
         }),
       );
     }
@@ -57,7 +69,7 @@ async function login(
   }
 }
 
-async function register(
+export async function register(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -80,7 +92,7 @@ async function register(
   }
 }
 
-async function logout(
+export async function logout(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -99,5 +111,3 @@ async function logout(
     });
   });
 }
-
-export { get, login, logout, register };
