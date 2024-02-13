@@ -17,7 +17,7 @@ const publishedFileSchema = new Schema<IPublishedFile>({
   author_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
   author: { type: String, required: true },
   file_id: { type: Schema.Types.ObjectId, required: true, ref: "File" },
-  date: { type: Date, default: Date.now },
+  date: { type: Date, required: true, default: Date.now },
 });
 
 const PublishedFile = mongoose.model<IPublishedFile>(

@@ -1,8 +1,9 @@
 import argon2 from "argon2";
 import express from "express";
 
+import type mongoose from "mongoose";
 import HttpError from "../http_error";
-import { User } from "../models";
+import { File, PublishedFile, User, Workbench } from "../models";
 
 export async function get(
   req: express.Request,
@@ -17,7 +18,88 @@ export async function get(
       .populate("published_files")
       .exec();
     if (user) {
-      res.json(user);
+      res.json({
+        username: user.username,
+        nickname: user.nickname,
+        published_files: user.published_files,
+      });
+    } else {
+      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+    }
+  } catch (error) {
+    next(new HttpError({ status: 500, cause: error }));
+  }
+}
+
+async function deleteWorkbench(userId: mongoose.Types.ObjectId) {
+  const workbench = await Workbench.findById(userId).exec();
+  if (workbench) {
+    workbench.deleted = true;
+    await workbench.save();
+  }
+}
+
+async function deleteFiles(userId: mongoose.Types.ObjectId) {
+  Promise.all(
+    (await File.find({ user_id: userId }).exec()).map(async (file) => {
+      file.deleted = true;
+      file.published = false;
+      await file.save();
+    }),
+  );
+}
+
+async function deletePublishedFiles(userId: mongoose.Types.ObjectId) {
+  await PublishedFile.deleteMany({ author_id: userId }).exec();
+}
+
+export async function del(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
+  try {
+    const username = request.params.username;
+    const user = await User.findOne({ username: username }).exec();
+    if (user) {
+      Promise.all([
+        async () => {
+          user.deleted = true;
+          await user.save();
+        },
+        deleteWorkbench(user._id),
+        deleteFiles(user._id),
+        deletePublishedFiles(user._id),
+      ]);
+      response.end();
+    } else {
+      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+    }
+  } catch (error) {
+    next(new HttpError({ status: 500, cause: error }));
+  }
+}
+
+export async function edit(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
+  try {
+    const username = request.params.username;
+    const { nickname, password } = request.body;
+    const user = await User.findOne({
+      username: username,
+    }).exec();
+    if (user) {
+      if (nickname) {
+        user.nickname = nickname;
+      }
+      if (password) {
+        user.password_digest = await argon2.hash(password);
+      }
+      await user.save();
+      response.json({ username: user.username });
     } else {
       next(new HttpError({ status: 400, message: "user doesn't exist" }));
     }
@@ -82,7 +164,12 @@ export async function register(
 ) {
   try {
     let { username, nickname, password } = request.body;
-    if (await User.findOne({ username: username }).exec()) {
+    if (
+      await User.findOne({ username: username })
+        .where("deleted")
+        .equals(false)
+        .exec()
+    ) {
       next(new HttpError({ status: 400, message: "user already exists" }));
     } else {
       nickname = nickname || username;

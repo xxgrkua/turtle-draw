@@ -83,29 +83,8 @@ app.use(session(sess));
 
 app.use("/api", apiRouter);
 
-// get other user
-app.get("/user/:userId", async function (request, response) {});
-
-// get user self
-app.get("/user", isAuthenticated, async function (request, response) {});
-
-// register user
-app.post("/user", async function (request, response) {
-  console.log(request.body);
-});
-
-// edit user
-app.put("/user", isAuthenticated, async function (request, response) {});
-
 // delete user
 app.delete("/user", isAuthenticated, async function (request, response) {});
-
-// user logout
-app.post(
-  "/user/logout",
-  isAuthenticated,
-  async function (request, response) {},
-);
 
 // get specific file
 app.get("/file/:fileId", async function (request, response) {});

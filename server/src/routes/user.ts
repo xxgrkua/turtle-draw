@@ -1,11 +1,20 @@
 import express from "express";
 import { body } from "express-validator";
-import { get, login, logout, register } from "../controllers/user";
-import { validate } from "../middlewares";
+import { del, edit, get, login, logout, register } from "../controllers/user";
+import { authenticateUsername, validate } from "../middlewares";
 
 const router = express.Router();
 
 router.get("/:username", get);
+
+router.put(
+  "/:username",
+  authenticateUsername,
+  validate([body("password").optional().isLength({ min: 8, max: 100 })]),
+  edit,
+);
+
+router.delete("/:username", authenticateUsername, del);
 
 router.post(
   "/login",
