@@ -83,21 +83,6 @@ app.use(session(sess));
 
 app.use("/api", apiRouter);
 
-// delete user
-app.delete("/user", isAuthenticated, async function (request, response) {});
-
-// get specific file
-app.get("/file/:fileId", async function (request, response) {});
-
-// create file
-app.post("/file", isAuthenticated, async function (request, response) {});
-
-// edit file
-app.put("/file", isAuthenticated, async function (request, response) {});
-
-// delete file
-app.delete("/file", isAuthenticated, async function (request, response) {});
-
 // get workspace
 app.get("/workspace", isAuthenticated, async function (request, response) {});
 

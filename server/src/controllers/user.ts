@@ -5,7 +5,7 @@ import type mongoose from "mongoose";
 import HttpError from "../http_error";
 import { File, PublishedFile, User, Workbench } from "../models";
 
-export async function get(
+export async function getUser(
   req: express.Request,
   res: express.Response,
   next: express.NextFunction,
@@ -15,6 +15,8 @@ export async function get(
       { username: req.params.username },
       "username nickname published_files",
     )
+      .where("deleted")
+      .equals(false)
       .populate("published_files")
       .exec();
     if (user) {
@@ -53,17 +55,21 @@ async function deletePublishedFiles(userId: mongoose.Types.ObjectId) {
   await PublishedFile.deleteMany({ author_id: userId }).exec();
 }
 
-export async function del(
+export async function deleteUser(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
 ) {
   try {
     const username = request.params.username;
-    const user = await User.findOne({ username: username }).exec();
+    const user = await User.findOne({ username: username })
+      .where("deleted")
+      .equals(false)
+      .exec();
     if (user) {
       Promise.all([
         async () => {
+          user.published_files = [];
           user.deleted = true;
           await user.save();
         },
@@ -80,7 +86,7 @@ export async function del(
   }
 }
 
-export async function edit(
+export async function modifyUser(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -90,7 +96,10 @@ export async function edit(
     const { nickname, password } = request.body;
     const user = await User.findOne({
       username: username,
-    }).exec();
+    })
+      .where("deleted")
+      .equals(false)
+      .exec();
     if (user) {
       if (nickname) {
         user.nickname = nickname;
@@ -120,7 +129,10 @@ export async function login(
         username: username,
       },
       "username password_digest",
-    ).exec();
+    )
+      .where("deleted")
+      .equals(false)
+      .exec();
     if (user) {
       if (await argon2.verify(user.password_digest, password)) {
         request.session.regenerate(function (error) {
@@ -133,7 +145,7 @@ export async function login(
             if (err) {
               next(err);
             }
-            response.json({ username: user.username });
+            response.json({ user_id: user._id, username: user.username });
           });
         });
       } else {

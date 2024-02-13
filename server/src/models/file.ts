@@ -23,6 +23,7 @@ interface IFile {
   // terminal: ITerminal;
   graphic: IGraphic;
   user_id: Types.ObjectId;
+  username: string;
   published: boolean;
   deleted: boolean;
 }
@@ -33,6 +34,7 @@ const fileSchema = new Schema<IFile>({
   // terminal: terminalSchema,
   graphic: { type: graphicSchema, required: true },
   user_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  username: { type: String, required: true },
   published: { type: Boolean, required: true, default: false },
   deleted: { type: Boolean, required: true, default: false },
 });
