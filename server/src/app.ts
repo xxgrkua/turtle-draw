@@ -2,7 +2,7 @@ import { randomBytes } from "node:crypto";
 
 import compression from "compression";
 import express from "express";
-import session from "express-session";
+import session, { type SessionOptions } from "express-session";
 import helmet from "helmet";
 import mongoose from "mongoose";
 import toobusy from "toobusy-js";
@@ -12,7 +12,6 @@ import CONFIG from "../../config";
 import errorHandler from "./controllers/error";
 import notFound from "./controllers/notfound";
 import HttpError from "./http_error";
-import { User } from "./models";
 import apiRouter from "./routes/api";
 
 function isAuthenticated(
@@ -60,8 +59,8 @@ app.use("/robots.txt", function (request, response) {
 
 app.use(express.json());
 
-const sess = {
-  secret: randomBytes(256),
+const sess: SessionOptions = {
+  secret: randomBytes(256).toString("base64"),
   resave: false,
   saveUninitialized: false,
   store: CONFIG.store,
@@ -75,7 +74,9 @@ const sess = {
 
 if (process.env.NODE_ENV === "production") {
   // app.set("trust proxy", 1);
-  sess.cookie.secure = true;
+  if (sess.cookie) {
+    sess.cookie.secure = true;
+  }
 }
 
 app.use(session(sess));
@@ -98,49 +99,6 @@ app.put("/user", isAuthenticated, async function (request, response) {});
 
 // delete user
 app.delete("/user", isAuthenticated, async function (request, response) {});
-
-// user login
-app.post("/user/login", async function (request, response, next) {
-  try {
-    const { login_name, password } = request.body;
-    const user = await User.findOne({
-      username: login_name,
-    }).exec();
-    if (user) {
-      // wrong password
-      if (password !== user.password_digest) {
-        throw Error(request.body.password);
-      }
-      request.session.regenerate(function (error) {
-        if (error) {
-          next(error);
-        }
-
-        request.session.user_id = user._id;
-        request.session.login_name = user.username;
-
-        request.session.save(function (err) {
-          if (err) {
-            next(err);
-          }
-
-          response.json({
-            res: "success",
-            _id: user._id,
-            username: user.username,
-          });
-        });
-      });
-    } else {
-      throw Error(request.body.login_name);
-    }
-  } catch (error) {
-    response.status(400).json({
-      res: "error",
-      msg: `${request.body.login_name} doesn't exist or password is wrong`,
-    });
-  }
-});
 
 // user logout
 app.post(

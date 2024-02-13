@@ -1,9 +1,11 @@
 import express from "express";
 import { body } from "express-validator";
-import { login, logout, register } from "../controllers/user";
+import { get, login, logout, register } from "../controllers/user";
 import { validate } from "../middlewares";
 
 const router = express.Router();
+
+router.get("/:username", get);
 
 router.post(
   "/login",

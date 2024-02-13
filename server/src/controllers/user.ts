@@ -13,8 +13,14 @@ export async function get(
     const user = await User.findOne(
       { username: req.params.username },
       "username nickname published_files",
-    ).exec();
-    res.json(user);
+    )
+      .populate("published_files")
+      .exec();
+    if (user) {
+      res.json(user);
+    } else {
+      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+    }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));
   }
