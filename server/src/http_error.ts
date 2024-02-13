@@ -1,3 +1,8 @@
+interface HttpErrorOptions {
+  status: number;
+  message?: string;
+  cause?: unknown;
+}
 class HttpError extends Error {
   static {
     this.prototype.name = "HttpError";
@@ -5,9 +10,9 @@ class HttpError extends Error {
 
   status: number;
 
-  constructor(status: number, message?: string, cause?: unknown) {
-    super(message, { cause: cause });
-    this.status = status;
+  constructor(options: HttpErrorOptions) {
+    super(options.message, { cause: options.cause });
+    this.status = options.status;
   }
 
   public toString(): string {

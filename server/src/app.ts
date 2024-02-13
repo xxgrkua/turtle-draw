@@ -1,13 +1,17 @@
+import { randomBytes } from "node:crypto";
+
 import compression from "compression";
 import express from "express";
 import session from "express-session";
 import helmet from "helmet";
 import mongoose from "mongoose";
+import toobusy from "toobusy-js";
 import ViteExpress from "vite-express";
 
 import CONFIG from "../../config";
 import errorHandler from "./controllers/error";
 import notFound from "./controllers/notfound";
+import HttpError from "./http_error";
 import { User } from "./models";
 import apiRouter from "./routes/api";
 
@@ -26,6 +30,7 @@ function isAuthenticated(
 const app = express();
 
 app.use(compression());
+
 // vite doesn't support INLINE_RUNTIME_CHUNK=false as create-react-app
 // we need "wasm-unsafe-eval" to run wasm
 app.use(
@@ -38,6 +43,14 @@ app.use(
   }),
 );
 
+app.use(function (request, response, next) {
+  if (toobusy()) {
+    next(new HttpError({ status: 503, message: "Server is too busy" }));
+  } else {
+    next();
+  }
+});
+
 app.use("/robots.txt", function (request, response) {
   response.type("text/plain");
   response.send(
@@ -47,14 +60,25 @@ app.use("/robots.txt", function (request, response) {
 
 app.use(express.json());
 
-app.use(
-  session({
-    secret: "secret key for app",
-    resave: false,
-    saveUninitialized: false,
-    store: CONFIG.store,
-  }),
-);
+const sess = {
+  secret: randomBytes(256),
+  resave: false,
+  saveUninitialized: false,
+  store: CONFIG.store,
+  cookie: {
+    secure: false,
+    httpOnly: true,
+    path: "/",
+    sameSite: true,
+  },
+};
+
+if (process.env.NODE_ENV === "production") {
+  // app.set("trust proxy", 1);
+  sess.cookie.secure = true;
+}
+
+app.use(session(sess));
 
 app.use("/api", apiRouter);
 
@@ -80,7 +104,7 @@ app.post("/user/login", async function (request, response, next) {
   try {
     const { login_name, password } = request.body;
     const user = await User.findOne({
-      login_name,
+      username: login_name,
     }).exec();
     if (user) {
       // wrong password
@@ -93,7 +117,7 @@ app.post("/user/login", async function (request, response, next) {
         }
 
         request.session.user_id = user._id;
-        request.session.login_name = user.login_name;
+        request.session.login_name = user.username;
 
         request.session.save(function (err) {
           if (err) {
@@ -103,7 +127,7 @@ app.post("/user/login", async function (request, response, next) {
           response.json({
             res: "success",
             _id: user._id,
-            username: user.login_name,
+            username: user.username,
           });
         });
       });

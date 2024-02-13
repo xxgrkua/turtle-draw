@@ -8,11 +8,7 @@ async function errorHandler(
   next: express.NextFunction,
 ) {
   if (!(error instanceof HttpError)) {
-    if (error instanceof Error) {
-      error = new HttpError(500);
-    } else {
-      error = new HttpError(500, error);
-    }
+    error = new HttpError({ status: 500, cause: error });
   }
   console.log(error);
   if (error.message) {
