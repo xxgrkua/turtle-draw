@@ -23,6 +23,7 @@ interface IFile {
   // terminal: ITerminal;
   graphic: IGraphic;
   user_id: Types.ObjectId;
+  published: boolean;
 }
 
 const fileSchema = new Schema<IFile>({
@@ -31,6 +32,7 @@ const fileSchema = new Schema<IFile>({
   // terminal: terminalSchema,
   graphic: { type: graphicSchema, required: true },
   user_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  published: { type: Boolean, required: true, default: false },
 });
 
 const File = mongoose.model<IFile>("File", fileSchema);
