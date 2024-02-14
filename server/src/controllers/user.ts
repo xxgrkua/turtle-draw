@@ -11,10 +11,7 @@ export async function getUser(
   next: express.NextFunction,
 ) {
   try {
-    const user = await User.findOne(
-      { username: req.params.username },
-      "username nickname published_files",
-    )
+    const user = await User.findOne({ username: req.params.username })
       .where("deleted")
       .equals(false)
       .populate("published_files")
@@ -42,11 +39,13 @@ async function deleteWorkbench(userId: mongoose.Types.ObjectId) {
 }
 
 async function deleteFiles(userId: mongoose.Types.ObjectId) {
-  Promise.all(
-    (await File.find({ user_id: userId }).exec()).map(async (file) => {
-      file.deleted = true;
-      file.published = false;
-      await file.save();
+  await Promise.all(
+    (await File.find({ user_id: userId }).exec()).map((file) => {
+      async () => {
+        file.deleted = true;
+        file.published = false;
+        await file.save();
+      };
     }),
   );
 }
@@ -67,9 +66,9 @@ export async function deleteUser(
       .equals(false)
       .exec();
     if (user) {
-      Promise.all([
+      await Promise.all([
         async () => {
-          user.published_files = [];
+          user.published_files.pull();
           user.deleted = true;
           await user.save();
         },
@@ -185,10 +184,18 @@ export async function register(
       next(new HttpError({ status: 400, message: "user already exists" }));
     } else {
       nickname = nickname || username;
-      User.create({
+      const user = await User.create({
         username,
         nickname,
         password_digest: await argon2.hash(password),
+        published_files: [],
+        deleted: false,
+      });
+      const workspace = await Workbench.create({
+        user_id: user._id,
+        username: user.username,
+        workspaces: [],
+        deleted: false,
       });
       response.json({ username });
     }

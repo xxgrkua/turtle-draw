@@ -2,7 +2,7 @@ import express from "express";
 
 import mongoose from "mongoose";
 import HttpError from "../http_error";
-import { File, PublishedFile, User } from "../models";
+import { File, PublishedFile, User, Workbench } from "../models";
 
 export async function getPublishedFile(
   request: express.Request,
@@ -31,7 +31,7 @@ export async function getPublishedFile(
   }
 }
 
-export async function getUserFile(
+export async function getFile(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -44,7 +44,11 @@ export async function getUserFile(
       .where("deleted")
       .equals(false)
       .exec();
-    if (file) {
+    const workbench = await Workbench.findOne({
+      username: request.params.username,
+    }).exec();
+    const workspace = workbench?.workspaces.id(request.params.workspaceId);
+    if (file && workspace?.files.includes(file._id)) {
       response.json({
         name: file.name,
         content: file.content,
@@ -58,7 +62,49 @@ export async function getUserFile(
   }
 }
 
-export async function editUserFile(
+export async function createFile(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
+  try {
+    const workbench = await Workbench.findOne({
+      username: request.params.username,
+    }).exec();
+    const user = await User.findOne({
+      username: request.params.username,
+    }).exec();
+    if (workbench && user) {
+      const workspace = workbench.workspaces.id(request.params.workspaceId);
+      if (workspace) {
+        const file = await File.create({
+          name: request.body.name,
+          content: "",
+          graphic: { content: "" },
+          user_id: user._id,
+          username: user.username,
+          published: false,
+          deleted: false,
+        });
+        workspace.files.push(file._id);
+        workspace.active_file = file._id;
+        workbench.active_workspace = workspace._id;
+        await workbench.save();
+        response.json({ file_id: file._id });
+      } else {
+        next(
+          new HttpError({ status: 400, message: "workspace doesn't exist" }),
+        );
+      }
+    } else {
+      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+    }
+  } catch (error) {
+    next(new HttpError({ status: 500, cause: error }));
+  }
+}
+
+export async function modifyFile(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -71,11 +117,20 @@ export async function editUserFile(
       .where("deleted")
       .equals(false)
       .exec();
-    if (file) {
+    const workbench = await Workbench.findOne({
+      username: request.params.username,
+    }).exec();
+    const workspace = workbench?.workspaces.id(request.params.workspaceId);
+    if (file && workspace?.files.includes(file._id)) {
       file.content = request.body.content;
       file.graphic = request.body.graphic;
+      file.name = request.body.name || file.name;
       await file.save();
-      response.json({ file_id: file._id });
+      response.json({
+        name: file.name,
+        content: file.content,
+        graphic: file.graphic,
+      });
     } else {
       next(new HttpError({ status: 400, message: "file doesn't exist" }));
     }
@@ -89,11 +144,11 @@ async function deleteOnePublishedFileFromUser(
   file_id: mongoose.Types.ObjectId,
 ) {
   const user = await User.findById(user_id).exec();
-  await user?.updateOne({ $pull: { published_files: file_id } }).exec();
+  user?.published_files.pull(file_id);
   await user?.save();
 }
 
-export async function deleteUserFile(
+export async function deleteFile(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -106,8 +161,12 @@ export async function deleteUserFile(
       .where("deleted")
       .equals(false)
       .exec();
-    if (file) {
-      Promise.all([
+    const workbench = await Workbench.findOne({
+      username: request.params.username,
+    }).exec();
+    const workspace = workbench?.workspaces.id(request.params.workspaceId);
+    if (file && workspace?.files.includes(file._id)) {
+      await Promise.all([
         async () => {
           file.deleted = true;
           await file.save();
@@ -116,8 +175,35 @@ export async function deleteUserFile(
           await PublishedFile.deleteOne({ file_id: file._id }).exec();
         },
         deleteOnePublishedFileFromUser(file.user_id, file._id),
+        async () => {
+          if (workspace.opened_files.includes(file._id)) {
+            // file is opened
+            // so we need to find another file to be active
+            const index = workspace.opened_files.indexOf(file._id);
+            if (index > 0) {
+              workspace.active_file = workspace.opened_files[index - 1];
+            } else {
+              if (workspace.files.length > 1) {
+                workspace.active_file = workspace.files[1];
+              } else {
+                workspace.active_file = undefined;
+              }
+            }
+            workspace.files.pull(file._id);
+            workspace.opened_files.pull(file._id);
+          } else {
+            // file is not opened
+            // so active file is not changed
+            workspace.files.pull(file._id);
+          }
+
+          await workbench?.save();
+        },
       ]);
-      response.end();
+      response.json({
+        workspaces: workbench?.workspaces.filter((ws) => !ws.deleted),
+        active_workspace: workbench?.active_workspace,
+      });
     } else {
       next(new HttpError({ status: 400, message: "file doesn't exist" }));
     }
@@ -126,7 +212,54 @@ export async function deleteUserFile(
   }
 }
 
-// TODO: how to update a published file?
+export async function closeFile(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
+  try {
+    const file = await File.findOne({
+      username: request.params.username,
+      _id: request.params.fileId,
+    })
+      .where("deleted")
+      .equals(false)
+      .exec();
+    const workbench = await Workbench.findOne({
+      username: request.params.username,
+    }).exec();
+    const workspace = workbench?.workspaces.id(request.params.workspaceId);
+    if (
+      file &&
+      workspace?.files.includes(file._id) &&
+      workspace?.opened_files.includes(file._id)
+    ) {
+      if (workspace.active_file === file._id) {
+        const index = workspace.opened_files.indexOf(file._id);
+        if (index > 0) {
+          workspace.active_file = workspace.opened_files[index - 1];
+        } else {
+          if (workspace.files.length > 1) {
+            workspace.active_file = workspace.files[1];
+          } else {
+            workspace.active_file = undefined;
+          }
+        }
+      }
+      workspace.opened_files.pull(file._id);
+
+      await workbench?.save();
+      response.json({
+        workspaces: workbench?.workspaces.filter((ws) => !ws.deleted),
+        active_workspace: workbench?.active_workspace,
+      });
+    } else {
+      next(new HttpError({ status: 400, message: "file doesn't exist" }));
+    }
+  } catch (error) {
+    next(new HttpError({ status: 500, cause: error }));
+  }
+}
 
 export async function publishFile(
   request: express.Request,
@@ -141,34 +274,35 @@ export async function publishFile(
       .where("deleted")
       .equals(false)
       .exec();
-    if (file?.published) {
-      next(new HttpError({ status: 400, message: "file already published" }));
-    }
     const user = await User.findOne({ username: request.params.username })
       .where("deleted")
       .equals(false)
       .exec();
     if (file && user) {
-      Promise.all([
+      await Promise.all([
         async () => {
           file.published = true;
           await file.save();
         },
         async () => {
-          await user
-            .updateOne({ $addToSet: { published_files: file._id } })
-            .exec();
+          user.published_files.addToSet(file._id);
           await user.save();
         },
         async () => {
-          PublishedFile.create({
-            title: request.body.title,
-            description: request.body.description || "",
-            image: file.graphic.content,
-            author_id: file.user_id,
-            author: file.username,
-            file_id: file._id,
-          });
+          PublishedFile.findOneAndUpdate(
+            { file_id: file._id },
+            {
+              title: request.body.title,
+              description: request.body.description || "",
+              image: file.graphic.content,
+              author_id: file.user_id,
+              author: file.username,
+            },
+            {
+              new: true,
+              upsert: true,
+            },
+          );
         },
       ]);
       response.json({ file_id: file._id });
@@ -201,7 +335,7 @@ export async function unpublishFile(
       .equals(false)
       .exec();
     if (file && user) {
-      Promise.all([
+      await Promise.all([
         async () => {
           file.published = false;
           await file.save();
@@ -210,7 +344,7 @@ export async function unpublishFile(
           await PublishedFile.deleteOne({ file_id: file._id }).exec();
         },
         async () => {
-          await user.updateOne({ $pull: { published_files: file._id } }).exec();
+          user.published_files.pull(file._id);
           await user.save();
         },
       ]);

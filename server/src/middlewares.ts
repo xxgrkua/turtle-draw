@@ -46,21 +46,7 @@ export function validate(validations: ContextRunner[]) {
 
     for (const error of errors.array()) {
       console.log(error);
-      switch (error.type) {
-        case "field":
-          if (error.value) {
-            msg.push(`${error.path} is invalid`);
-          } else {
-            msg.push(`${error.path} is required`);
-          }
-          break;
-        case "alternative":
-          break;
-        case "alternative_grouped":
-          break;
-        case "unknown_fields":
-          break;
-      }
+      msg.push(error.msg);
     }
     next(new HttpError({ status: 400, message: msg.join(", ") }));
   };

@@ -4,7 +4,7 @@ interface IUser {
   username: string;
   nickname: string;
   password_digest: string;
-  published_files?: Types.ObjectId[];
+  published_files: Types.Array<Types.ObjectId>;
   deleted: boolean;
 }
 

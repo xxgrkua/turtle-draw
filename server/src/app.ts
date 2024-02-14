@@ -83,19 +83,6 @@ app.use(session(sess));
 
 app.use("/api", apiRouter);
 
-// get workspace
-app.get("/workspace", isAuthenticated, async function (request, response) {});
-
-// create workspace
-app.post("/workspace", isAuthenticated, async function (request, response) {});
-
-// delete workspace
-app.delete(
-  "/workspace",
-  isAuthenticated,
-  async function (request, response) {},
-);
-
 app.use(notFound);
 app.use(errorHandler);
 
