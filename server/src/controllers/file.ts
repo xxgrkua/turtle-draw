@@ -158,7 +158,7 @@ export async function publishFile(
             .exec();
           await user.save();
         },
-        // TODO: add published file
+        // TODO: add published file, generate image
         // async () => {
         //   PublishedFile.create({
         //     file_id: file._id,

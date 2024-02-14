@@ -62,6 +62,7 @@ router.delete("/:username/file/:fileId", authenticateUsername, deleteUserFile);
 router.post(
   "/:username/file/:fileId/publish",
   authenticateUsername,
+  validate([body("title").notEmpty()]),
   publishFile,
 );
 
