@@ -203,8 +203,6 @@ router.put(
   validate([
     body("content")
       .optional()
-      .withMessage("content is required")
-      .bail()
       .isString()
       .withMessage("content is not a string")
       .bail(),
