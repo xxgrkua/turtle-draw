@@ -126,6 +126,8 @@ export async function deleteUserFile(
   }
 }
 
+// TODO: how to update a published file?
+
 export async function publishFile(
   request: express.Request,
   response: express.Response,
@@ -158,14 +160,16 @@ export async function publishFile(
             .exec();
           await user.save();
         },
-        // TODO: add published file, generate image
-        // async () => {
-        //   PublishedFile.create({
-        //     file_id: file._id,
-        //     author_id: file.user_id,
-        //     author_name: file.username,
-        //   });
-        // },
+        async () => {
+          PublishedFile.create({
+            title: request.body.title,
+            description: request.body.description || "",
+            image: file.graphic.content,
+            author_id: file.user_id,
+            author: file.username,
+            file_id: file._id,
+          });
+        },
       ]);
       response.json({ file_id: file._id });
     } else {
