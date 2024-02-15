@@ -14,18 +14,6 @@ import notFound from "./controllers/notfound";
 import HttpError from "./http_error";
 import apiRouter from "./routes/api";
 
-function isAuthenticated(
-  request: express.Request,
-  response: express.Response,
-  next: express.NextFunction,
-) {
-  if (request.session.user_id && request.session.username) {
-    next();
-  } else {
-    response.status(401).json({ res: "error", msg: "Unauthorized user" });
-  }
-}
-
 const app = express();
 
 app.use(compression());
