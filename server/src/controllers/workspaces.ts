@@ -21,7 +21,7 @@ export async function getWorkspaces(
         active_workspace: workbench.active_workspace,
       });
     } else {
-      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+      next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));
@@ -53,7 +53,7 @@ export async function createWorkspace(
         active_workspace: workbench.active_workspace,
       });
     } else {
-      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+      next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));
@@ -93,11 +93,11 @@ export async function deleteWorkspace(
         });
       } else {
         next(
-          new HttpError({ status: 400, message: "workspace doesn't exist" }),
+          new HttpError({ status: 404, message: "workspace doesn't exist" }),
         );
       }
     } else {
-      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+      next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));
@@ -134,7 +134,7 @@ export async function modifyWorkspace(
                   ) {
                     next(
                       new HttpError({
-                        status: 400,
+                        status: 404,
                         message: "file doesn't exist",
                       }),
                     );
@@ -152,11 +152,11 @@ export async function modifyWorkspace(
         await workbench.save();
       } else {
         next(
-          new HttpError({ status: 400, message: "workspace doesn't exist" }),
+          new HttpError({ status: 404, message: "workspace doesn't exist" }),
         );
       }
     } else {
-      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+      next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));

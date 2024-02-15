@@ -9,7 +9,12 @@ async function notFound(
   if (request.method === "GET") {
     next();
   } else {
-    next(new HttpError(404, `${request.method} ${request.url}`));
+    next(
+      new HttpError({
+        status: 404,
+        message: `${request.method} ${request.url}`,
+      }),
+    );
   }
 }
 

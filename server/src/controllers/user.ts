@@ -23,7 +23,7 @@ export async function getUser(
         published_files: user.published_files,
       });
     } else {
-      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+      next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));
@@ -78,7 +78,7 @@ export async function deleteUser(
       ]);
       response.end();
     } else {
-      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+      next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));
@@ -109,7 +109,7 @@ export async function modifyUser(
       await user.save();
       response.json({ username: user.username });
     } else {
-      next(new HttpError({ status: 400, message: "user doesn't exist" }));
+      next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));
@@ -158,7 +158,7 @@ export async function login(
     } else {
       next(
         new HttpError({
-          status: 400,
+          status: 404,
           message: "user doesn't exist",
         }),
       );
@@ -181,7 +181,7 @@ export async function register(
         .equals(false)
         .exec()
     ) {
-      next(new HttpError({ status: 400, message: "user already exists" }));
+      next(new HttpError({ status: 404, message: "user already exists" }));
     } else {
       nickname = nickname || username;
       const user = await User.create({
