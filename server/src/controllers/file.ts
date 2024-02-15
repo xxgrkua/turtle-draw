@@ -328,7 +328,7 @@ export async function unpublishFile(
       .equals(false)
       .exec();
     if (!file?.published) {
-      next(new HttpError({ status: 404, message: "file not published" }));
+      next(new HttpError({ status: 400, message: "file not published" }));
     }
     const user = await User.findOne({ username: request.params.username })
       .where("deleted")

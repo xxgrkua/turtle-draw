@@ -181,7 +181,7 @@ export async function register(
         .equals(false)
         .exec()
     ) {
-      next(new HttpError({ status: 404, message: "user already exists" }));
+      next(new HttpError({ status: 400, message: "user already exists" }));
     } else {
       nickname = nickname || username;
       const user = await User.create({
