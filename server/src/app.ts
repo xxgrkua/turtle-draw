@@ -44,7 +44,7 @@ app.use(
 
 app.use(function (request, response, next) {
   if (toobusy()) {
-    next(new HttpError({ status: 503, message: "Server is too busy" }));
+    next(new HttpError({ status: 503, message: "server is too busy" }));
   } else {
     next();
   }
