@@ -154,8 +154,12 @@ router.put(
       .optional()
       .isArray()
       .withMessage("opened_files is not an array")
-      .bail()
-      .custom(async (value) => {}),
+      .bail(),
+    body("opened_files.*")
+      .optional()
+      .isString()
+      .withMessage("opened_files is not an array of strings")
+      .bail(),
     body("active_file")
       .optional()
       .isString()
