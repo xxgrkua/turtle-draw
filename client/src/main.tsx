@@ -29,4 +29,9 @@ store.dispatch(incrementIfOdd(2));
 store.dispatch(login({ username: "ttt", password: "123456789" })).catch((e) => {
   console.error(e);
 });
+store
+  .dispatch(login({ username: "ttt", password: "123456789dfdfd" }))
+  .catch((e) => {
+    console.log(e);
+  });
 // const workspaces = useSelector(selectAllWorkspaces);

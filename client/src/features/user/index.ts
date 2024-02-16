@@ -1,5 +1,6 @@
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { createAppSlice } from "../../app/createAppSlice";
+import { ApiErrorMessage } from "../../types/api";
 
 interface UserInfo {
   username: string;
@@ -32,12 +33,10 @@ export const userSlice = createAppSlice({
             username: payload.username,
             password: payload.password,
           });
-
           return data;
         } catch (error) {
-          if (axios.isAxiosError(error)) {
-            const axiosError = error as AxiosError<{ error: string }>;
-            return thunkAPI.rejectWithValue(axiosError.response?.data.error);
+          if (axios.isAxiosError<ApiErrorMessage>(error) && error.response) {
+            return thunkAPI.rejectWithValue(error.response.data.error);
           } else {
             throw error;
           }
@@ -54,7 +53,7 @@ export const userSlice = createAppSlice({
         },
         rejected: (state, action) => {
           state.state = "failed";
-          state.error = action.error.message || null;
+          state.error = action.payload as string;
         },
       },
     ),
