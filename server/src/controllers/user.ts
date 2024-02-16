@@ -5,6 +5,16 @@ import type mongoose from "mongoose";
 import HttpError from "../http_error";
 import { File, PublishedFile, User, Workbench } from "../models";
 
+export async function getMe(
+  request: express.Request,
+  response: express.Response,
+) {
+  response.json({
+    user_id: request.session.user_id,
+    username: request.session.username,
+  });
+}
+
 export async function getUser(
   req: express.Request,
   res: express.Response,

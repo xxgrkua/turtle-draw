@@ -9,12 +9,16 @@ async function notFound(
   if (request.method === "GET") {
     next();
   } else {
-    next(
-      new HttpError({
-        status: 404,
-        message: `${request.method} ${request.url}`,
-      }),
-    );
+    if (request.url.includes("/api/")) {
+      next(
+        new HttpError({
+          status: 404,
+          message: `${request.method} ${request.url}`,
+        }),
+      );
+    } else {
+      response.status(404).send("Not Found");
+    }
   }
 }
 

@@ -1,13 +1,16 @@
 import compression from "compression";
 import express from "express";
+import rateLimit, {
+  type Options as rateLimitOptions,
+} from "express-rate-limit";
 import session, { type SessionOptions } from "express-session";
 import helmet from "helmet";
 import mongoose from "mongoose";
-import toobusy from "toobusy-js";
 import ViteExpress from "vite-express";
 
 import CONFIG from "../../config";
 import errorHandler from "./controllers/error";
+import { restrictHttpMethod } from "./controllers/httpmethod";
 import notFound from "./controllers/notfound";
 import HttpError from "./http_error";
 import apiRouter from "./routes/api";
@@ -28,13 +31,26 @@ app.use(
   }),
 );
 
-app.use(function (request, response, next) {
-  if (toobusy()) {
-    next(new HttpError({ status: 503, message: "server is too busy" }));
-  } else {
-    next();
-  }
+app.use(restrictHttpMethod);
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: async (
+    request: express.Request,
+    response: express.Response,
+    next: express.NextFunction,
+    options: rateLimitOptions,
+  ) => {
+    next(
+      new HttpError({ status: options.statusCode, message: options.message }),
+    );
+  },
 });
+
+app.use(limiter);
 
 app.use("/robots.txt", function (request, response) {
   response.type("text/plain");

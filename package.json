@@ -37,7 +37,6 @@
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.21.2",
     "rust-scheme": "file:./rust/pkg",
-    "toobusy-js": "^0.5.1",
     "tsx": "^4.7.1",
     "vite-express": "^0.13.0"
   },

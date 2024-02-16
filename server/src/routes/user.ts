@@ -12,6 +12,7 @@ import {
 } from "../controllers/file";
 import {
   deleteUser,
+  getMe,
   getUser,
   login,
   logout,
@@ -24,9 +25,15 @@ import {
   getWorkspaces,
   modifyWorkspace,
 } from "../controllers/workspaces";
-import { authenticateUsername, validate } from "../middlewares";
+import {
+  authenticateUserId,
+  authenticateUsername,
+  validate,
+} from "../middlewares";
 
 const router = express.Router();
+
+router.get("/me", authenticateUsername, authenticateUserId, getMe);
 
 router.get("/:username", getUser);
 

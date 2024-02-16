@@ -7,14 +7,27 @@ async function errorHandler(
   response: express.Response,
   next: express.NextFunction,
 ) {
-  if (!(error instanceof HttpError)) {
-    error = new HttpError({ status: 500, cause: error });
-  }
-  console.log(error);
-  if (error.message) {
-    response.status(error.status).json({ error: error.message });
+  if (request.url.includes("/api/")) {
+    if (!(error instanceof HttpError)) {
+      error = new HttpError({ status: 500, cause: error });
+    }
+    console.log(error);
+    if (error.message) {
+      response.status(error.status).json({ error: error.message });
+    } else {
+      response.status(error.status).end();
+    }
   } else {
-    response.status(error.status).end();
+    console.log(error);
+    if (error instanceof HttpError) {
+      if (error.message) {
+        response.status(error.status).send(error.message);
+      } else {
+        response.status(error.status).end();
+      }
+    } else {
+      response.status(500).send("Internal Server Error");
+    }
   }
 }
 
