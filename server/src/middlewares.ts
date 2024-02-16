@@ -2,6 +2,18 @@ import express from "express";
 import { validationResult, type ContextRunner } from "express-validator";
 import HttpError from "./http_error";
 
+export async function authenticateSession(
+  request: express.Request,
+  response: express.Response,
+  next: express.NextFunction,
+) {
+  if (request.session.user_id && request.session.username) {
+    next();
+  } else {
+    next(new HttpError({ status: 401 }));
+  }
+}
+
 export async function authenticateUsername(
   request: express.Request,
   response: express.Response,

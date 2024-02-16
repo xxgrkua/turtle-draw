@@ -26,14 +26,14 @@ import {
   modifyWorkspace,
 } from "../controllers/workspaces";
 import {
-  authenticateUserId,
+  authenticateSession,
   authenticateUsername,
   validate,
 } from "../middlewares";
 
 const router = express.Router();
 
-router.get("/me", authenticateUsername, authenticateUserId, getMe);
+router.get("/", authenticateSession, getMe);
 
 router.get("/:username", getUser);
 

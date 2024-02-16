@@ -28,8 +28,8 @@ const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
 
   const submit = function () {
     axios
-      .post("/user/login", {
-        login_name: loginName,
+      .post("/api/user/login", {
+        username: loginName,
         password: password,
       })
       .then(() => {

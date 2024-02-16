@@ -12,6 +12,7 @@ export async function getMe(
   response.json({
     user_id: request.session.user_id,
     username: request.session.username,
+    nickname: request.session.nickname,
   });
 }
 
@@ -117,7 +118,24 @@ export async function modifyUser(
         user.password_digest = await argon2.hash(password);
       }
       await user.save();
-      response.json({ username: user.username });
+      request.session.regenerate(function (error) {
+        if (error) {
+          next(error);
+        }
+        if (nickname) {
+          request.session.nickname = user.nickname;
+        }
+        request.session.save(function (err) {
+          if (err) {
+            next(err);
+          }
+          response.json({
+            username: user.username,
+            nickname: user.nickname,
+            user_id: user._id,
+          });
+        });
+      });
     } else {
       next(new HttpError({ status: 404, message: "user doesn't exist" }));
     }
@@ -150,11 +168,16 @@ export async function login(
           }
           request.session.user_id = user._id;
           request.session.username = user.username;
+          request.session.nickname = username.nickname;
           request.session.save(function (err) {
             if (err) {
               next(err);
             }
-            response.json({ user_id: user._id, username: user.username });
+            response.json({
+              user_id: user._id,
+              username: user.username,
+              nickname: user.nickname,
+            });
           });
         });
       } else {
@@ -221,6 +244,7 @@ export async function logout(
 ) {
   request.session.user_id = null;
   request.session.username = null;
+  request.session.nickname = null;
   request.session.save(function (error) {
     if (error) {
       next(error);
