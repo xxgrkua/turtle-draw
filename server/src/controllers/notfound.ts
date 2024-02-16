@@ -1,7 +1,7 @@
 import express from "express";
 import HttpError from "../http_error";
 
-async function notFound(
+function notFound(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,

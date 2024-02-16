@@ -1,6 +1,7 @@
 import express from "express";
-
+import { type ParamsDictionary } from "express-serve-static-core";
 import mongoose from "mongoose";
+
 import HttpError from "../http_error";
 import { File, PublishedFile, User, Workbench } from "../models";
 
@@ -63,7 +64,7 @@ export async function getFile(
 }
 
 export async function createFile(
-  request: express.Request,
+  request: express.Request<ParamsDictionary, any, { name: string }>,
   response: express.Response,
   next: express.NextFunction,
 ) {
@@ -105,7 +106,11 @@ export async function createFile(
 }
 
 export async function modifyFile(
-  request: express.Request,
+  request: express.Request<
+    ParamsDictionary,
+    any,
+    { content: string; graphic: string; name?: string }
+  >,
   response: express.Response,
   next: express.NextFunction,
 ) {
@@ -123,7 +128,7 @@ export async function modifyFile(
     const workspace = workbench?.workspaces.id(request.params.workspaceId);
     if (file && workspace?.files.includes(file._id)) {
       file.content = request.body.content;
-      file.graphic = request.body.graphic;
+      file.graphic = { content: request.body.graphic };
       file.name = request.body.name || file.name;
       await file.save();
       response.json({
@@ -232,7 +237,7 @@ export async function closeFile(
     if (
       file &&
       workspace?.files.includes(file._id) &&
-      workspace?.opened_files.includes(file._id)
+      workspace.opened_files.includes(file._id)
     ) {
       if (workspace.active_file === file._id) {
         const index = workspace.opened_files.indexOf(file._id);
@@ -262,7 +267,11 @@ export async function closeFile(
 }
 
 export async function publishFile(
-  request: express.Request,
+  request: express.Request<
+    ParamsDictionary,
+    any,
+    { title: string; description?: string }
+  >,
   response: express.Response,
   next: express.NextFunction,
 ) {
@@ -289,7 +298,7 @@ export async function publishFile(
           await user.save();
         },
         async () => {
-          PublishedFile.findOneAndUpdate(
+          await PublishedFile.findOneAndUpdate(
             { file_id: file._id },
             {
               title: request.body.title,
@@ -302,7 +311,7 @@ export async function publishFile(
               new: true,
               upsert: true,
             },
-          );
+          ).exec();
         },
       ]);
       response.json({ file_id: file._id });

@@ -1,14 +1,12 @@
 import argon2 from "argon2";
 import express from "express";
-
+import { type ParamsDictionary } from "express-serve-static-core";
 import type mongoose from "mongoose";
+
 import HttpError from "../http_error";
 import { File, PublishedFile, User, Workbench } from "../models";
 
-export async function getMe(
-  request: express.Request,
-  response: express.Response,
-) {
+export function getMe(request: express.Request, response: express.Response) {
   response.json({
     user_id: request.session.user_id,
     username: request.session.username,
@@ -97,7 +95,11 @@ export async function deleteUser(
 }
 
 export async function modifyUser(
-  request: express.Request,
+  request: express.Request<
+    ParamsDictionary,
+    any,
+    { nickname: string; password: string }
+  >,
   response: express.Response,
   next: express.NextFunction,
 ) {
@@ -145,7 +147,11 @@ export async function modifyUser(
 }
 
 export async function login(
-  request: express.Request,
+  request: express.Request<
+    ParamsDictionary,
+    any,
+    { username: string; password: string }
+  >,
   response: express.Response,
   next: express.NextFunction,
 ) {
@@ -168,7 +174,7 @@ export async function login(
           }
           request.session.user_id = user._id;
           request.session.username = user.username;
-          request.session.nickname = username.nickname;
+          request.session.nickname = user.nickname;
           request.session.save(function (err) {
             if (err) {
               next(err);
@@ -202,12 +208,17 @@ export async function login(
 }
 
 export async function register(
-  request: express.Request,
+  request: express.Request<
+    ParamsDictionary,
+    any,
+    { username: string; nickname: string; password: string }
+  >,
   response: express.Response,
   next: express.NextFunction,
 ) {
   try {
-    let { username, nickname, password } = request.body;
+    let { nickname } = request.body;
+    const { username, password } = request.body;
     if (
       await User.findOne({ username: username })
         .where("deleted")
@@ -224,7 +235,7 @@ export async function register(
         published_files: [],
         deleted: false,
       });
-      const workspace = await Workbench.create({
+      await Workbench.create({
         user_id: user._id,
         username: user.username,
         workspaces: [],
@@ -237,7 +248,7 @@ export async function register(
   }
 }
 
-export async function logout(
+export function logout(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,

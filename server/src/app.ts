@@ -38,14 +38,17 @@ const limiter = rateLimit({
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
-  handler: async (
+  handler: (
     request: express.Request,
     response: express.Response,
     next: express.NextFunction,
     options: rateLimitOptions,
   ) => {
     next(
-      new HttpError({ status: options.statusCode, message: options.message }),
+      new HttpError({
+        status: options.statusCode,
+        message: String(options.message),
+      }),
     );
   },
 });

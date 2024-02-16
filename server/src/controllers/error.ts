@@ -1,17 +1,24 @@
 import express from "express";
 import HttpError from "../http_error";
 
-async function errorHandler(
+function errorHandler(
   error: any,
   request: express.Request,
   response: express.Response,
-  next: express.NextFunction,
+  _next: express.NextFunction,
 ) {
   if (request.url.includes("/api/")) {
     if (!(error instanceof HttpError)) {
       error = new HttpError({ status: 500, cause: error });
     }
     console.log(error);
+    /*
+      eslint-disable
+      @typescript-eslint/no-unsafe-member-access,
+      @typescript-eslint/no-unsafe-argument,
+      @typescript-eslint/no-unsafe-assignment
+    */
+    // eslint seems to not support narrowing the type by condition
     if (error.message) {
       response.status(error.status).json({ error: error.message });
     } else {

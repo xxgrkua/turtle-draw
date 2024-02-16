@@ -2,7 +2,7 @@ import express from "express";
 import { validationResult, type ContextRunner } from "express-validator";
 import HttpError from "./http_error";
 
-export async function authenticateSession(
+export function authenticateSession(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -14,7 +14,7 @@ export async function authenticateSession(
   }
 }
 
-export async function authenticateUsername(
+export function authenticateUsername(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
@@ -26,12 +26,12 @@ export async function authenticateUsername(
   }
 }
 
-export async function authenticateUserId(
+export function authenticateUserId(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,
 ) {
-  if (request.session.user_id === request.params.user_id) {
+  if (request.session.user_id?.toString() === request.params.user_id) {
     next();
   } else {
     next(new HttpError({ status: 401 }));
@@ -44,17 +44,17 @@ export function validate(validations: ContextRunner[]) {
     res: express.Response,
     next: express.NextFunction,
   ) => {
-    for (let validation of validations) {
+    for (const validation of validations) {
       const result = await validation.run(req);
       if (!result.isEmpty()) break;
     }
 
     const errors = validationResult(req);
     if (errors.isEmpty()) {
-      return next();
+      next();
     }
 
-    const msg: string[] = [];
+    const msg: any[] = [];
 
     for (const error of errors.array()) {
       console.log(error);

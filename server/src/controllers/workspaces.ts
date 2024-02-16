@@ -1,5 +1,7 @@
 import express from "express";
+import { type ParamsDictionary } from "express-serve-static-core";
 import type mongoose from "mongoose";
+
 import HttpError from "../http_error";
 import { File, Workbench } from "../models";
 
@@ -29,7 +31,7 @@ export async function getWorkspaces(
 }
 
 export async function createWorkspace(
-  request: express.Request,
+  request: express.Request<ParamsDictionary, any, { name: string }>,
   response: express.Response,
   next: express.NextFunction,
 ) {
@@ -105,7 +107,15 @@ export async function deleteWorkspace(
 }
 
 export async function modifyWorkspace(
-  request: express.Request,
+  request: express.Request<
+    ParamsDictionary,
+    any,
+    {
+      name?: string;
+      active?: boolean;
+      opened_files?: mongoose.Types.ObjectId[];
+    }
+  >,
   response: express.Response,
   next: express.NextFunction,
 ) {
@@ -143,7 +153,8 @@ export async function modifyWorkspace(
               },
             ),
           );
-          workspace.opened_files = request.body.opened_files;
+          workspace.opened_files = request.body
+            .opened_files as mongoose.Types.Array<mongoose.Types.ObjectId>;
         }
         workbench.active_workspace = request.body.active
           ? workspace._id

@@ -3,7 +3,7 @@ import HttpError from "../http_error";
 
 const ALLOWED_METHODS = ["GET", "POST", "PUT", "DELETE"];
 
-export async function restrictHttpMethod(
+export function restrictHttpMethod(
   request: express.Request,
   response: express.Response,
   next: express.NextFunction,

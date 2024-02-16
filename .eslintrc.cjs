@@ -7,11 +7,12 @@ module.exports = {
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
   ],
-  ignorePatterns: ["dist", ".eslintrc.cjs"],
+  ignorePatterns: ["dist", ".eslintrc.cjs", "rust/*"],
   parser: "@typescript-eslint/parser",
   parserOptions: { ecmaVersion: "latest", sourceType: "module" },
   overrides: [
     {
+      files: ["./server/**/*.ts", "./config/**/*.ts"],
       env: { node: true, es2020: true },
       extends: [
         "eslint:recommended",
@@ -20,13 +21,21 @@ module.exports = {
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
-        project: ["./server/tsconfig.json", "./tsconfig.node.json"],
+        project: ["./server/tsconfig.json", "./tsconfig.config.json"],
       },
       rules: {
         "no-unsafe-member-access": "off",
+        "@typescript-eslint/no-explicit-any": ["off"],
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { argsIgnorePattern: "^_" },
+        ],
+        // this is fixed in express 5, but not 4
+        "@typescript-eslint/no-misused-promises": "off",
       },
     },
     {
+      files: ["./client/**/*.tsx", "./client/**/*.ts"],
       extends: [
         "eslint:recommended",
         "plugin:@typescript-eslint/strict-type-checked",
@@ -37,7 +46,7 @@ module.exports = {
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
-        project: ["./tsconfig.json", "./tsconfig.node.json"],
+        project: ["./client/tsconfig.json", "./tsconfig.node.json"],
         tsconfigRootDir: __dirname,
       },
     },
@@ -52,6 +61,7 @@ module.exports = {
       "warn",
       { allowConstantExport: true },
     ],
+    "@typescript-eslint/no-explicit-any": ["off"],
     // "react/react-in-jsx-scope": "off",
   },
   settings: {
