@@ -157,12 +157,9 @@ export async function login(
 ) {
   try {
     const { username, password } = request.body;
-    const user = await User.findOne(
-      {
-        username: username,
-      },
-      "username password_digest",
-    )
+    const user = await User.findOne({
+      username: username,
+    })
       .where("deleted")
       .equals(false)
       .exec();

@@ -52,6 +52,7 @@ export function validate(validations: ContextRunner[]) {
     const errors = validationResult(req);
     if (errors.isEmpty()) {
       next();
+      return;
     }
 
     const msg: any[] = [];

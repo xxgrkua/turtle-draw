@@ -3,11 +3,17 @@ import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { counterSlice } from "../features/counter/counterSlice";
 import { quotesApiSlice } from "../features/quotes/quotesApiSlice";
+import { userSlice } from "../features/user";
 import { workbenchSlice } from "../features/workspace";
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
-const rootReducer = combineSlices(counterSlice, quotesApiSlice, workbenchSlice);
+const rootReducer = combineSlices(
+  counterSlice,
+  quotesApiSlice,
+  workbenchSlice,
+  userSlice,
+);
 
 // The store setup is wrapped in `makeStore` to allow reuse
 // when setting up tests that need the same store config

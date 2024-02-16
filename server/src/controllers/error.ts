@@ -7,6 +7,7 @@ function errorHandler(
   response: express.Response,
   _next: express.NextFunction,
 ) {
+  console.log("errorHandler");
   if (request.url.includes("/api/")) {
     if (!(error instanceof HttpError)) {
       error = new HttpError({ status: 500, cause: error });
@@ -19,6 +20,7 @@ function errorHandler(
       @typescript-eslint/no-unsafe-assignment
     */
     // eslint seems to not support narrowing the type by condition
+    console.log("here");
     if (error.message) {
       response.status(error.status).json({ error: error.message });
     } else {

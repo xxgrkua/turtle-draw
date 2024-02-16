@@ -19,6 +19,7 @@ interface FileState {
   content: string;
   terminal: TerminalState;
   graphics: GraphicsState;
+  saved: boolean;
 }
 
 interface WorkspaceState {
@@ -52,6 +53,7 @@ const initialState: WorkbenchState = {
           graphics: {
             content: "",
           },
+          saved: true,
         },
       ],
     },
@@ -62,6 +64,10 @@ export const workbenchSlice = createAppSlice({
   name: "workbench",
   initialState,
   reducers: {
+    debug: (state) => {
+      console.log(state);
+    },
+
     addWorkspace: (state, action: PayloadAction<{ name: string }>) => {
       state.workspaces.push({
         id: nanoid(),
@@ -108,6 +114,7 @@ export const workbenchSlice = createAppSlice({
           graphics: {
             content: "",
           },
+          saved: true,
         });
       }
     },
@@ -173,7 +180,37 @@ export const workbenchSlice = createAppSlice({
         }
       }
     },
+
+    saveFile: (
+      state,
+      action: PayloadAction<{ workspaceId: string; fileId: string }>,
+    ) => {
+      const workspace = state.workspaces.find(
+        (workspace) => workspace.id === action.payload.workspaceId,
+      );
+      if (workspace) {
+        const file = workspace.files.find(
+          (file) => file.id === action.payload.fileId,
+        );
+        if (file) {
+          file.saved = true;
+        }
+      }
+    },
   },
 });
+
+export function selectAllWorkspaces(state: { workbench: WorkbenchState }) {
+  return state.workbench.workspaces;
+}
+
+export function selectWorkspaceById(
+  state: { workbench: WorkbenchState },
+  workspaceId: string,
+) {
+  return state.workbench.workspaces.find(
+    (workspace) => workspace.id === workspaceId,
+  );
+}
 
 export default workbenchSlice.reducer;

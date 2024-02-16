@@ -33,27 +33,29 @@ app.use(
 
 app.use(restrictHttpMethod);
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (
-    request: express.Request,
-    response: express.Response,
-    next: express.NextFunction,
-    options: rateLimitOptions,
-  ) => {
-    next(
-      new HttpError({
-        status: options.statusCode,
-        message: String(options.message),
-      }),
-    );
-  },
-});
+if (process.env.NODE_ENV === "production") {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: (
+      request: express.Request,
+      response: express.Response,
+      next: express.NextFunction,
+      options: rateLimitOptions,
+    ) => {
+      next(
+        new HttpError({
+          status: options.statusCode,
+          message: String(options.message),
+        }),
+      );
+    },
+  });
 
-app.use(limiter);
+  app.use(limiter);
+}
 
 app.use("/robots.txt", function (request, response) {
   response.type("text/plain");
