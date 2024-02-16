@@ -5,6 +5,7 @@ type Config = {
   database_name: string;
   port: number;
   store: session.Store;
+  cookie_secret: string;
 };
 
 export default Config;

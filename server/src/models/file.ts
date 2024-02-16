@@ -7,19 +7,19 @@ import mongoose, { Schema, Types } from "mongoose";
 // });
 
 interface IGraphic {
-  content: string;
+  content?: string;
 }
 
 const graphicSchema = new Schema<IGraphic>(
   {
-    content: { type: String, required: true },
+    content: { type: String },
   },
   { _id: false },
 );
 
 interface IFile {
   name: string;
-  content: string;
+  content?: string;
   // terminal: ITerminal;
   graphic: IGraphic;
   user_id: Types.ObjectId;
@@ -30,7 +30,7 @@ interface IFile {
 
 const fileSchema = new Schema<IFile>({
   name: { type: String, required: true },
-  content: { type: String, required: true },
+  content: { type: String },
   // terminal: terminalSchema,
   graphic: { type: graphicSchema, required: true },
   user_id: { type: Schema.Types.ObjectId, required: true, ref: "User" },

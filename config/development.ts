@@ -6,4 +6,5 @@ export default {
   database_name: "turtle-draw",
   port: 5000,
   store: new session.MemoryStore(),
+  cookie_secret: "secret",
 } as Config;

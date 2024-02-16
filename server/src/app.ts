@@ -1,5 +1,3 @@
-import { randomBytes } from "node:crypto";
-
 import compression from "compression";
 import express from "express";
 import session, { type SessionOptions } from "express-session";
@@ -48,7 +46,7 @@ app.use("/robots.txt", function (request, response) {
 app.use(express.json());
 
 const sess: SessionOptions = {
-  secret: randomBytes(256).toString("base64"),
+  secret: CONFIG.cookie_secret,
   resave: false,
   saveUninitialized: false,
   store: CONFIG.store,
@@ -57,6 +55,7 @@ const sess: SessionOptions = {
     httpOnly: true,
     path: "/",
     sameSite: true,
+    maxAge: 24 * 60 * 60 * 1000,
   },
 };
 

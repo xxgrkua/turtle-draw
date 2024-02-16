@@ -13,4 +13,5 @@ export default {
     databaseName: process.env.DATABASE_NAME as string,
     collection: "sessions",
   }),
+  cookie_secret: process.env.COOKIE_SECRET as string,
 } as Config;
