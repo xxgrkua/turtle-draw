@@ -205,14 +205,18 @@ export const userSlice = createAppSlice({
 
   selectors: {
     selectUserInfo: (state) => state.userInfo,
-    selectInitState: (state) => state.initState,
-    selectState: (state) => state.state,
-    selectError: (state) => state.error,
+    selectUserInitState: (state) => state.initState,
+    selectUserState: (state) => state.state,
+    selectUserError: (state) => state.error,
   },
 });
 
-export const { selectError, selectInitState, selectState, selectUserInfo } =
-  userSlice.selectors;
+export const {
+  selectUserError,
+  selectUserInitState,
+  selectUserState,
+  selectUserInfo,
+} = userSlice.selectors;
 
 export const { init, login, logout, register, updateUser, deleteUser } =
   userSlice.actions;

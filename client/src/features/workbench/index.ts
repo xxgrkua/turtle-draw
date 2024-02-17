@@ -61,7 +61,7 @@ interface WorkbenchState {
   workspaceIds: string[];
   workspaces: { [id: string]: WorkspaceState };
   activeWorkspace: string | null;
-  state: "idle" | "loading" | "succeeded" | "failed";
+  initState: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
 }
 
@@ -69,7 +69,7 @@ const initialState: WorkbenchState = {
   workspaceIds: [],
   workspaces: {},
   activeWorkspace: null,
-  state: "idle",
+  initState: "idle",
   error: null,
 };
 
@@ -101,10 +101,10 @@ export const workbenchSlice = createAppSlice({
       },
       {
         pending: (state) => {
-          state.state = "loading";
+          state.initState = "loading";
         },
         fulfilled: (state, action) => {
-          state.state = "succeeded";
+          state.initState = "succeeded";
           if (action.payload) {
             state.workspaceIds = action.payload.workspaces.map(
               (workspace) => workspace.id,
@@ -125,7 +125,7 @@ export const workbenchSlice = createAppSlice({
           }
         },
         rejected: (state, action) => {
-          state.state = "failed";
+          state.initState = "failed";
           state.error = action.payload as string;
         },
       },
@@ -156,10 +156,10 @@ export const workbenchSlice = createAppSlice({
       },
       {
         pending: (state) => {
-          state.state = "loading";
+          state.initState = "loading";
         },
         fulfilled: (state, action) => {
-          state.state = "succeeded";
+          state.initState = "succeeded";
           if (action.payload instanceof Object) {
             state.workspaceIds.push(action.payload.id);
             state.workspaces[action.payload.id] = {
@@ -190,7 +190,7 @@ export const workbenchSlice = createAppSlice({
             state.workspaceIds[state.workspaceIds.length - 1];
         },
         rejected: (state, action) => {
-          state.state = "failed";
+          state.initState = "failed";
           state.error = action.payload as string;
         },
       },
@@ -230,11 +230,11 @@ export const workbenchSlice = createAppSlice({
       },
       {
         pending: (state) => {
-          state.state = "loading";
+          state.initState = "loading";
         },
 
         fulfilled: (state, action) => {
-          state.state = "succeeded";
+          state.initState = "succeeded";
           if (action.payload.active_workspace !== undefined) {
             state.activeWorkspace = action.payload.active_workspace;
           } else {
@@ -259,7 +259,7 @@ export const workbenchSlice = createAppSlice({
         },
 
         rejected: (state, action) => {
-          state.state = "failed";
+          state.initState = "failed";
           state.error = action.payload as string;
         },
       },
@@ -335,10 +335,34 @@ export const workbenchSlice = createAppSlice({
       },
     ),
   }),
+
+  selectors: {
+    selectWorkspaceById: (state, workspace_id: string) =>
+      state.workspaces[workspace_id],
+    selectAllWorkspaces: (state) =>
+      state.workspaceIds.map((id) => state.workspaces[id]),
+    selectActiveWorkspace: (state) => state.activeWorkspace,
+    selectWorkbenchError: (state) => state.error,
+    selectWorkbenchState: (state) => state.initState,
+    selectFileById: (state, workspace_id: string, file_id: string) => {
+      const workspace = state.workspaces[workspace_id];
+      return workspace.files[file_id];
+    },
+  },
 });
 
-export function selectAllWorkspaces(state: { workbench: WorkbenchState }) {
-  return state.workbench.workspaces;
-}
+export const {
+  selectActiveWorkspace,
+  selectAllWorkspaces,
+  selectFileById,
+  selectWorkbenchError,
+  selectWorkbenchState,
+  selectWorkspaceById,
+} = workbenchSlice.selectors;
 
-export default workbenchSlice.reducer;
+export const {
+  initWorkbench,
+  createWorkspace,
+  deleteWorkspace,
+  updateWorkspace,
+} = workbenchSlice.actions;
