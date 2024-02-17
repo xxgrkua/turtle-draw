@@ -88,10 +88,16 @@ export async function createFile(
           deleted: false,
         });
         workspace.files.push(file._id);
+        workspace.opened_files.push(file._id);
         workspace.active_file = file._id;
         workbench.active_workspace = workspace._id;
         await workbench.save();
-        response.json({ file_id: file._id });
+        response.json({
+          workspace_id: workspace._id,
+          files: workspace.files,
+          opened_files: workspace.opened_files,
+          active_file: workspace.active_file,
+        });
       } else {
         next(
           new HttpError({ status: 404, message: "workspace doesn't exist" }),

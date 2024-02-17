@@ -134,7 +134,7 @@ router.delete(
 router.get("/:username/workspaces", authenticateUsername, getWorkspaces);
 
 router.post(
-  "/:username/workspace",
+  "/:username/workspaces",
   authenticateUsername,
   validate([
     body("name")
@@ -149,7 +149,7 @@ router.post(
 );
 
 router.put(
-  "/:username/workspace/:workspaceId",
+  "/:username/workspaces/:workspaceId",
   authenticateUsername,
   validate([
     body("name")
@@ -182,13 +182,13 @@ router.put(
 );
 
 router.delete(
-  "/:username/workspace/:workspaceId",
+  "/:username/workspaces/:workspaceId",
   authenticateUsername,
   deleteWorkspace,
 );
 
 router.post(
-  "/:username/workspace/:workspaceId/file",
+  "/:username/workspaces/:workspaceId/file",
   authenticateUsername,
   validate([
     body("name")
@@ -203,13 +203,13 @@ router.post(
 );
 
 router.get(
-  "/:username/workspace/:workspaceId/file/:fileId",
+  "/:username/workspaces/:workspaceId/file/:fileId",
   authenticateUsername,
   getFile,
 );
 
 router.put(
-  "/:username/workspace/:workspaceId/file/:fileId",
+  "/:username/workspaces/:workspaceId/file/:fileId",
   authenticateUsername,
   validate([
     body("content")
@@ -234,19 +234,19 @@ router.put(
 );
 
 router.delete(
-  "/:username/workspace/:workspaceId/file/:fileId",
+  "/:username/workspaces/:workspaceId/file/:fileId",
   authenticateUsername,
   deleteFile,
 );
 
 router.put(
-  "/:username/workspace/:workspaceId/file/:fileId/close",
+  "/:username/workspaces/:workspaceId/file/:fileId/close",
   authenticateUsername,
   closeFile,
 );
 
 // router.put(
-//   "/:username/workspace/:workspaceId/file/:fileId/move",
+//   "/:username/workspaces/:workspaceId/file/:fileId/move",
 //   authenticateUsername,
 // );
 

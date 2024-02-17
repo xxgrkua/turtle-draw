@@ -19,7 +19,17 @@ export async function getWorkspaces(
       .exec();
     if (workbench) {
       response.json({
-        workspaces: workbench.workspaces.filter((ws) => !ws.deleted),
+        workspaces: workbench.workspaces
+          .filter((ws) => !ws.deleted)
+          .map((ws) => {
+            return {
+              id: ws._id,
+              name: ws.name,
+              files: ws.files,
+              opened_files: ws.opened_files,
+              active_file: ws.active_file || null,
+            };
+          }),
         active_workspace: workbench.active_workspace,
       });
     } else {
@@ -51,8 +61,14 @@ export async function createWorkspace(
         workbench.workspaces[workbench.workspaces.length - 1]._id;
       await workbench.save();
       response.json({
-        workspaces: workbench.workspaces.filter((ws) => !ws.deleted),
-        active_workspace: workbench.active_workspace,
+        id: workbench.active_workspace,
+        name: workbench.workspaces[workbench.workspaces.length - 1].name,
+        files: workbench.workspaces[workbench.workspaces.length - 1].files,
+        opened_files:
+          workbench.workspaces[workbench.workspaces.length - 1].opened_files,
+        active_file:
+          workbench.workspaces[workbench.workspaces.length - 1].active_file ||
+          null,
       });
     } else {
       next(new HttpError({ status: 404, message: "user doesn't exist" }));
@@ -90,8 +106,7 @@ export async function deleteWorkspace(
         workspace.deleted = true;
         await workbench.save();
         response.json({
-          workspaces: workbench.workspaces.filter((ws) => !ws.deleted),
-          active_workspace: workbench.active_workspace,
+          active_workspace: workbench.active_workspace || null,
         });
       } else {
         next(
@@ -114,6 +129,7 @@ export async function modifyWorkspace(
       name?: string;
       active?: boolean;
       opened_files?: mongoose.Types.ObjectId[];
+      active_file?: mongoose.Types.ObjectId;
     }
   >,
   response: express.Response,
@@ -159,8 +175,18 @@ export async function modifyWorkspace(
         workbench.active_workspace = request.body.active
           ? workspace._id
           : workbench.active_workspace;
+        workspace.active_file =
+          request.body.active_file || workspace.active_file;
 
         await workbench.save();
+
+        response.json({
+          id: workspace._id,
+          name: workspace.name,
+          opened_files: workspace.opened_files,
+          active_file: workspace.active_file || null,
+          active_workspace: workbench.active_workspace,
+        });
       } else {
         next(
           new HttpError({ status: 404, message: "workspace doesn't exist" }),

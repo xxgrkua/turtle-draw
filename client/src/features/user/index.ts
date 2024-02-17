@@ -1,4 +1,5 @@
 import axios from "axios";
+
 import { createAppSlice } from "../../app/createAppSlice";
 import { ApiErrorMessage } from "../../types/api";
 
@@ -8,7 +9,7 @@ interface UserInfo {
   user_id: string;
 }
 
-interface UserSliceState {
+export interface UserSliceState {
   userInfo: UserInfo | null;
   initState: "idle" | "loading" | "succeeded" | "failed";
   state: "idle" | "loading" | "succeeded" | "failed";
@@ -201,9 +202,17 @@ export const userSlice = createAppSlice({
       },
     ),
   }),
+
+  selectors: {
+    selectUserInfo: (state) => state.userInfo,
+    selectInitState: (state) => state.initState,
+    selectState: (state) => state.state,
+    selectError: (state) => state.error,
+  },
 });
+
+export const { selectError, selectInitState, selectState, selectUserInfo } =
+  userSlice.selectors;
 
 export const { init, login, logout, register, updateUser, deleteUser } =
   userSlice.actions;
-
-export default userSlice.reducer;
