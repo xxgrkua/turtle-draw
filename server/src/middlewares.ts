@@ -52,6 +52,8 @@ export function validate(validations: ContextRunner[]) {
     const errors = validationResult(req);
     if (errors.isEmpty()) {
       next();
+      // you can't omit the return statement here
+      // ref: https://stackoverflow.com/a/43404213
       return;
     }
 

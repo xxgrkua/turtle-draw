@@ -49,6 +49,12 @@ module.exports = {
         project: ["./client/tsconfig.json", "./tsconfig.node.json"],
         tsconfigRootDir: __dirname,
       },
+      rules: {
+        "@typescript-eslint/no-unused-vars": [
+          "error",
+          { argsIgnorePattern: "^_" },
+        ],
+      },
     },
   ],
   parserOptions: {

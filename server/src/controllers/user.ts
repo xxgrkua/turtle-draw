@@ -238,7 +238,11 @@ export async function register(
         workspaces: [],
         deleted: false,
       });
-      response.json({ username });
+      response.json({
+        user_id: user._id,
+        username: user.username,
+        nickname: user.nickname,
+      });
     }
   } catch (error) {
     next(new HttpError({ status: 500, cause: error }));

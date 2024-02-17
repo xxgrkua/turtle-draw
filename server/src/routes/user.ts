@@ -33,7 +33,7 @@ import {
 
 const router = express.Router();
 
-router.get("/me", authenticateSession, getMe);
+router.get("/", authenticateSession, getMe);
 
 router.get("/:username", getUser);
 
