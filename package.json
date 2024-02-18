@@ -35,6 +35,7 @@
     "react-dom": "^18.2.0",
     "react-redux": "^9.1.0",
     "react-router-dom": "^6.21.2",
+    "redux-persist": "^6.0.0",
     "rust-scheme": "file:./rust/pkg",
     "tsx": "^4.7.1",
     "vite-express": "^0.13.0"

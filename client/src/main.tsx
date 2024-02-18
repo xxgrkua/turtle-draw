@@ -2,8 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 
+import { PersistGate } from "redux-persist/integration/react";
 import App from "./App.tsx";
-import { store } from "./app/store.ts";
+import { persistor, store } from "./app/store.ts";
 import { apiSlice } from "./features/api/index.ts";
 import { incrementIfOdd } from "./features/counter/counterSlice.ts";
 import "./index.css";
@@ -20,7 +21,9 @@ const root = document.getElementById("root") as HTMLElement;
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <Provider store={store}>
-      <App />
+      <PersistGate loading={null} persistor={persistor}>
+        <App />
+      </PersistGate>
     </Provider>
   </React.StrictMode>,
 );

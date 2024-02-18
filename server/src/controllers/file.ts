@@ -51,6 +51,7 @@ export async function getFile(
     const workspace = workbench?.workspaces.id(request.params.workspaceId);
     if (file && workspace?.files.includes(file._id)) {
       response.json({
+        id: file._id,
         name: file.name,
         content: file.content,
         graphic: file.graphic,
@@ -93,10 +94,14 @@ export async function createFile(
         workbench.active_workspace = workspace._id;
         await workbench.save();
         response.json({
+          id: file._id,
+          name: file.name,
+          content: file.content,
+          graphic: file.graphic.content,
           workspace_id: workspace._id,
-          files: workspace.files,
-          opened_files: workspace.opened_files,
-          active_file: workspace.active_file,
+          workspace_files: workspace.files,
+          workspace_opened_files: workspace.opened_files,
+          workspace_active_file: workspace.active_file,
         });
       } else {
         next(new ApiError({ status: 404, message: "workspace doesn't exist" }));
@@ -131,11 +136,12 @@ export async function modifyFile(
     }).exec();
     const workspace = workbench?.workspaces.id(request.params.workspaceId);
     if (file && workspace?.files.includes(file._id)) {
-      file.content = request.body.content;
-      file.graphic = { content: request.body.graphic };
+      file.content = request.body.content || file.content;
+      file.graphic = { content: request.body.graphic || file.graphic.content };
       file.name = request.body.name || file.name;
       await file.save();
       response.json({
+        id: file._id,
         name: file.name,
         content: file.content,
         graphic: file.graphic,
@@ -210,8 +216,7 @@ export async function deleteFile(
         },
       ]);
       response.json({
-        workspaces: workbench?.workspaces.filter((ws) => !ws.deleted),
-        active_workspace: workbench?.active_workspace,
+        active_file: workspace.active_file || null,
       });
     } else {
       next(new ApiError({ status: 404, message: "file doesn't exist" }));
@@ -259,8 +264,8 @@ export async function closeFile(
 
       await workbench?.save();
       response.json({
-        workspaces: workbench?.workspaces.filter((ws) => !ws.deleted),
-        active_workspace: workbench?.active_workspace,
+        active_file: workspace.active_file || null,
+        opened_files: workspace.opened_files,
       });
     } else {
       next(new ApiError({ status: 404, message: "file doesn't exist" }));

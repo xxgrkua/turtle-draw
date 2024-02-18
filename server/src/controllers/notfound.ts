@@ -1,5 +1,5 @@
 import express from "express";
-import { ApiError, HttpError } from "../http_error";
+import { ApiError } from "../http_error";
 
 function notFound(
   request: express.Request,
@@ -17,12 +17,7 @@ function notFound(
         }),
       );
     } else {
-      next(
-        new HttpError({
-          status: 404,
-          message: `Cannot ${request.method} ${request.url}`,
-        }),
-      );
+      next();
     }
   }
 }

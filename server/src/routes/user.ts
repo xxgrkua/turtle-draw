@@ -218,9 +218,7 @@ router.put(
       .withMessage("content is not a string")
       .bail(),
     body("graphic")
-      .notEmpty()
-      .withMessage("graphic is required")
-      .bail()
+      .optional()
       .isString()
       .withMessage("graphic is not a string")
       .bail(),

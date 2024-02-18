@@ -62,13 +62,10 @@ export async function createWorkspace(
       await workbench.save();
       response.json({
         id: workbench.active_workspace,
-        name: workbench.workspaces[workbench.workspaces.length - 1].name,
-        files: workbench.workspaces[workbench.workspaces.length - 1].files,
-        opened_files:
-          workbench.workspaces[workbench.workspaces.length - 1].opened_files,
-        active_file:
-          workbench.workspaces[workbench.workspaces.length - 1].active_file ||
-          null,
+        name: request.body.name,
+        files: [],
+        opened_files: [],
+        active_file: null,
       });
     } else {
       next(new ApiError({ status: 404, message: "user doesn't exist" }));

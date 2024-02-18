@@ -17,7 +17,7 @@ export function restrictHttpMethod(
         }),
       );
     } else {
-      next(new HttpError({ status: 405 }));
+      next(new HttpError({ status: 405, message: `Method Not Allowed` }));
     }
   } else {
     next();
