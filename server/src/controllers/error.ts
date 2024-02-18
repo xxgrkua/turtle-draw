@@ -34,8 +34,6 @@ function errorHandler(
     } else {
       response.status(error.status).end();
     }
-  } else if (error instanceof HttpError) {
-    next(error);
   } else {
     next(error);
   }

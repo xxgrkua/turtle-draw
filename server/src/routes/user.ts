@@ -103,7 +103,7 @@ router.post(
   register,
 );
 
-router.get("/logout", logout);
+router.post("/logout", logout);
 
 router.post(
   "/:username/file/:fileId/publish",

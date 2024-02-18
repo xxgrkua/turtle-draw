@@ -18,6 +18,10 @@
   },
   "dependencies": {
     "@ant-design/pro-components": "^2.6.43",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.15.10",
+    "@mui/material": "^5.15.10",
     "@reduxjs/toolkit": "^2.1.0",
     "antd": "^5.12.8",
     "argon2": "^0.31.2",

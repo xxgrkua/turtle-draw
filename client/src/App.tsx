@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "./app/hooks";
@@ -7,14 +7,13 @@ import Gallery from "./components/Gallery";
 import Main from "./components/Main";
 import SignInPage from "./components/SignInPage";
 import SignUpPage from "./components/SignUpPage";
-import { init } from "./features/user";
+import { init, selectUserInfo, selectUserInitState } from "./features/user";
 
 import "./App.css";
 
 const App: React.FC = () => {
-  const [isLoggedIn, setLoggedIn] = useState(false);
-
-  const initStatus = useAppSelector((state) => state.user.initState);
+  const initStatus = useAppSelector(selectUserInitState);
+  const userInfo = useAppSelector(selectUserInfo);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -26,21 +25,14 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/"
-          element={<Main isLoggedIn={isLoggedIn} />}
-          errorElement={<ErrorPage />}
-        />
-        <Route path="gallery/" element={<Gallery isLoggedIn={isLoggedIn} />} />
-        {isLoggedIn ? (
+        <Route path="/" element={<Main />} errorElement={<ErrorPage />} />
+        <Route path="gallery/" element={<Gallery />} />
+        {userInfo ? (
           <Route path="login/" element={<Navigate to="/" replace />} />
         ) : (
-          <Route
-            path="login/"
-            element={<SignInPage setLoggedIn={setLoggedIn} />}
-          />
+          <Route path="login/" element={<SignInPage />} />
         )}
-        {isLoggedIn ? (
+        {userInfo ? (
           <Route path="register" element={<Navigate to={"/"} replace />} />
         ) : (
           <Route path="register" element={<SignUpPage />} />

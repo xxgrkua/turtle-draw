@@ -5,6 +5,8 @@ import { createAppSlice } from "../../app/createAppSlice";
 import { ApiErrorMessage } from "../../types/api";
 import { UserSliceState, selectUserInfo } from "../user";
 
+const Interpreters: { [file_id: string]: (code: string) => string } = {};
+
 interface WorkspaceResponse {
   id: string;
   name: string;
@@ -41,7 +43,6 @@ interface CreateFileResponse extends FileResponse {
 }
 
 interface TerminalState {
-  interpreter: (code: string) => string;
   history: string[];
   current: string;
 }
@@ -441,7 +442,6 @@ export const workbenchSlice = createAppSlice({
               name: action.payload.name,
               content: action.payload.content,
               terminal: {
-                interpreter: getInterpreter(),
                 history: [],
                 current: "",
               },
@@ -469,7 +469,6 @@ export const workbenchSlice = createAppSlice({
               name: action.payload.name,
               content: action.payload.content,
               terminal: {
-                interpreter: getInterpreter(),
                 history: [],
                 current: "",
               },
@@ -486,6 +485,7 @@ export const workbenchSlice = createAppSlice({
             state.workspaces[action.meta.arg.workspace_id].activeFile =
               action.payload.id;
           }
+          Interpreters[action.payload.id] = getInterpreter();
         },
 
         rejected: (state, action) => {
@@ -578,6 +578,8 @@ export const workbenchSlice = createAppSlice({
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             action.payload.deleted_file
           ];
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete Interpreters[action.payload.deleted_file];
         },
 
         rejected: (state, action) => {
@@ -765,6 +767,8 @@ export const workbenchSlice = createAppSlice({
                 ].openedFiles.filter((id) => id !== action.payload.closed_file);
             }
           }
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+          delete Interpreters[action.payload.closed_file];
         },
 
         rejected: (state, action) => {
@@ -785,12 +789,17 @@ export const workbenchSlice = createAppSlice({
       state.workspaces[workspace_id],
     selectAllWorkspaces: (state) =>
       state.workspaceIds.map((id) => state.workspaces[id]),
-    selectActiveWorkspace: (state) => state.activeWorkspace,
     selectWorkbenchError: (state) => state.error,
     selectWorkbenchState: (state) => state.initState,
     selectFileById: (state, workspace_id: string, file_id: string) => {
       const workspace = state.workspaces[workspace_id];
       return workspace.files[file_id];
+    },
+    selectActiveWorkspace: (state) => {
+      return state.workspaces[state.activeWorkspace as string];
+    },
+    selectInterpreterById: (state, file_id: string) => {
+      return Interpreters[file_id];
     },
   },
 });
@@ -803,6 +812,7 @@ export const {
   selectWorkbenchError,
   selectWorkbenchState,
   selectWorkspaceById,
+  selectInterpreterById,
 } = workbenchSlice.selectors;
 
 export const {

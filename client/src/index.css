@@ -1,3 +1,9 @@
 body {
   margin: 0;
 }
+
+a:hover {
+  text-decoration: none;
+  color: #69b1ff;
+  transition: color 0.3s;
+}

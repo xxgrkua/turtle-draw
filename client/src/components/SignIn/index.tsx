@@ -12,11 +12,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import "./style.css";
 
-interface SignInProps {
-  setLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
+const SignIn: React.FC = () => {
   const { token } = theme.useToken();
   const [loginName, setLoginName] = useState("");
   const [password, setPassword] = useState("");
@@ -33,7 +29,7 @@ const SignIn: React.FC<SignInProps> = ({ setLoggedIn }) => {
         password: password,
       })
       .then(() => {
-        setLoggedIn(true);
+        // setLoggedIn(true);
       })
       .catch(() => {});
   };
