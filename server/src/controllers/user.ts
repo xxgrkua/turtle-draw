@@ -1,7 +1,7 @@
 import argon2 from "argon2";
 import express from "express";
 import { type ParamsDictionary } from "express-serve-static-core";
-import type mongoose from "mongoose";
+import mongoose from "mongoose";
 
 import HttpError from "../http_error";
 import { File, PublishedFile, User, Workbench } from "../models";
@@ -165,6 +165,9 @@ export async function login(
       .exec();
     if (user) {
       if (await argon2.verify(user.password_digest, password)) {
+        await mongoose.connection.db
+          .collection("sessions")
+          .deleteMany({ "session.user_id": user._id });
         request.session.regenerate(function (error) {
           if (error) {
             next(error);

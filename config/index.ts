@@ -1,9 +1,9 @@
-import development_config from "./development";
-import production_config from "./production";
+async function getConfig() {
+  if (process.env.NODE_ENV === "production") {
+    return (await import("./production")).default;
+  } else {
+    return (await import("./development")).default;
+  }
+}
 
-const CONFIG =
-  process.env.NODE_ENV === "production"
-    ? production_config
-    : development_config;
-
-export default CONFIG;
+export default getConfig;
