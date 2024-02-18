@@ -1,5 +1,5 @@
 import express from "express";
-import HttpError from "../http_error";
+import { ApiError, HttpError } from "../http_error";
 
 function notFound(
   request: express.Request,
@@ -11,13 +11,18 @@ function notFound(
   } else {
     if (request.url.includes("/api/")) {
       next(
-        new HttpError({
+        new ApiError({
           status: 404,
           message: `${request.method} ${request.url}`,
         }),
       );
     } else {
-      response.status(404).send("Not Found");
+      next(
+        new HttpError({
+          status: 404,
+          message: `Cannot ${request.method} ${request.url}`,
+        }),
+      );
     }
   }
 }

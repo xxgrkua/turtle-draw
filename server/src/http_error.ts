@@ -20,4 +20,10 @@ class HttpError extends Error {
   }
 }
 
-export default HttpError;
+class ApiError extends HttpError {
+  static {
+    this.prototype.name = "ApiError";
+  }
+}
+
+export { ApiError, HttpError };

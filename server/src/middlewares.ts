@@ -1,6 +1,6 @@
 import express from "express";
 import { validationResult, type ContextRunner } from "express-validator";
-import HttpError from "./http_error";
+import { ApiError } from "./http_error";
 
 export function authenticateSession(
   request: express.Request,
@@ -10,7 +10,7 @@ export function authenticateSession(
   if (request.session.user_id && request.session.username) {
     next();
   } else {
-    next(new HttpError({ status: 401 }));
+    next(new ApiError({ status: 401 }));
   }
 }
 
@@ -22,7 +22,7 @@ export function authenticateUsername(
   if (request.session.username === request.params.username) {
     next();
   } else {
-    next(new HttpError({ status: 401 }));
+    next(new ApiError({ status: 401 }));
   }
 }
 
@@ -34,7 +34,7 @@ export function authenticateUserId(
   if (request.session.user_id?.toString() === request.params.user_id) {
     next();
   } else {
-    next(new HttpError({ status: 401 }));
+    next(new ApiError({ status: 401 }));
   }
 }
 
@@ -63,6 +63,6 @@ export function validate(validations: ContextRunner[]) {
       console.log(error);
       msg.push(error.msg);
     }
-    next(new HttpError({ status: 400, message: msg.join(", ") }));
+    next(new ApiError({ status: 400, message: msg.join(", ") }));
   };
 }

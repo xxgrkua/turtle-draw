@@ -3,7 +3,7 @@ import express from "express";
 import { type ParamsDictionary } from "express-serve-static-core";
 import mongoose from "mongoose";
 
-import HttpError from "../http_error";
+import { ApiError } from "../http_error";
 import { File, PublishedFile, User, Workbench } from "../models";
 
 export function getMe(request: express.Request, response: express.Response) {
@@ -32,10 +32,10 @@ export async function getUser(
         published_files: user.published_files,
       });
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -87,10 +87,10 @@ export async function deleteUser(
       ]);
       response.end();
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -139,10 +139,10 @@ export async function modifyUser(
         });
       });
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -171,24 +171,26 @@ export async function login(
         request.session.regenerate(function (error) {
           if (error) {
             next(error);
-          }
-          request.session.user_id = user._id;
-          request.session.username = user.username;
-          request.session.nickname = user.nickname;
-          request.session.save(function (err) {
-            if (err) {
-              next(err);
-            }
-            response.json({
-              user_id: user._id,
-              username: user.username,
-              nickname: user.nickname,
+          } else {
+            request.session.user_id = user._id;
+            request.session.username = user.username;
+            request.session.nickname = user.nickname;
+            request.session.save(function (err) {
+              if (err) {
+                next(err);
+              } else {
+                response.json({
+                  user_id: user._id,
+                  username: user.username,
+                  nickname: user.nickname,
+                });
+              }
             });
-          });
+          }
         });
       } else {
         next(
-          new HttpError({
+          new ApiError({
             status: 400,
             message: "password is incorrect",
           }),
@@ -196,14 +198,14 @@ export async function login(
       }
     } else {
       next(
-        new HttpError({
+        new ApiError({
           status: 404,
           message: "user doesn't exist",
         }),
       );
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -225,7 +227,7 @@ export async function register(
         .equals(false)
         .exec()
     ) {
-      next(new HttpError({ status: 400, message: "user already exists" }));
+      next(new ApiError({ status: 400, message: "user already exists" }));
     } else {
       nickname = nickname || username;
       const user = await User.create({
@@ -248,7 +250,7 @@ export async function register(
       });
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 

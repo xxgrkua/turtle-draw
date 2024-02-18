@@ -2,7 +2,7 @@ import express from "express";
 import { type ParamsDictionary } from "express-serve-static-core";
 import type mongoose from "mongoose";
 
-import HttpError from "../http_error";
+import { ApiError } from "../http_error";
 import { File, Workbench } from "../models";
 
 export async function getWorkspaces(
@@ -33,10 +33,10 @@ export async function getWorkspaces(
         active_workspace: workbench.active_workspace,
       });
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -71,10 +71,10 @@ export async function createWorkspace(
           null,
       });
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -109,15 +109,13 @@ export async function deleteWorkspace(
           active_workspace: workbench.active_workspace || null,
         });
       } else {
-        next(
-          new HttpError({ status: 404, message: "workspace doesn't exist" }),
-        );
+        next(new ApiError({ status: 404, message: "workspace doesn't exist" }));
       }
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -159,7 +157,7 @@ export async function modifyWorkspace(
                       .exec())
                   ) {
                     next(
-                      new HttpError({
+                      new ApiError({
                         status: 404,
                         message: "file doesn't exist",
                       }),
@@ -188,14 +186,12 @@ export async function modifyWorkspace(
           active_workspace: workbench.active_workspace,
         });
       } else {
-        next(
-          new HttpError({ status: 404, message: "workspace doesn't exist" }),
-        );
+        next(new ApiError({ status: 404, message: "workspace doesn't exist" }));
       }
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }

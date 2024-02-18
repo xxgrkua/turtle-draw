@@ -1,40 +1,43 @@
 import express from "express";
-import HttpError from "../http_error";
+import { ApiError, HttpError } from "../http_error";
 
 function errorHandler(
   error: any,
   request: express.Request,
   response: express.Response,
-  _next: express.NextFunction,
+  next: express.NextFunction,
 ) {
-  if (request.url.includes("/api/")) {
-    if (!(error instanceof HttpError)) {
-      error = new HttpError({ status: 500, cause: error });
+  if (response.headersSent) {
+    next(error);
+    return;
+  }
+  if (!(error instanceof HttpError)) {
+    if (request.url.includes("/api/")) {
+      error = new ApiError({
+        status: 500,
+        message: "Internal Server Error",
+        cause: error,
+      });
+    } else {
+      error = new HttpError({
+        status: 500,
+        message: "Internal Server Error",
+        cause: error,
+      });
     }
+  }
+
+  if (error instanceof ApiError) {
     console.log(error);
-    /*
-      eslint-disable
-      @typescript-eslint/no-unsafe-member-access,
-      @typescript-eslint/no-unsafe-argument,
-      @typescript-eslint/no-unsafe-assignment
-    */
-    // eslint seems to not support narrowing the type by condition
     if (error.message) {
       response.status(error.status).json({ error: error.message });
     } else {
       response.status(error.status).end();
     }
+  } else if (error instanceof HttpError) {
+    next(error);
   } else {
-    console.log(error);
-    if (error instanceof HttpError) {
-      if (error.message) {
-        response.status(error.status).send(error.message);
-      } else {
-        response.status(error.status).end();
-      }
-    } else {
-      response.status(500).send("Internal Server Error");
-    }
+    next(error);
   }
 }
 

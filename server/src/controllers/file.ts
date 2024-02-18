@@ -2,7 +2,7 @@ import express from "express";
 import { type ParamsDictionary } from "express-serve-static-core";
 import mongoose from "mongoose";
 
-import HttpError from "../http_error";
+import { ApiError } from "../http_error";
 import { File, PublishedFile, User, Workbench } from "../models";
 
 export async function getPublishedFile(
@@ -25,10 +25,10 @@ export async function getPublishedFile(
         graphic: file.graphic,
       });
     } else {
-      next(new HttpError({ status: 404, message: "file doesn't exist" }));
+      next(new ApiError({ status: 404, message: "file doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -56,10 +56,10 @@ export async function getFile(
         graphic: file.graphic,
       });
     } else {
-      next(new HttpError({ status: 404, message: "file doesn't exist" }));
+      next(new ApiError({ status: 404, message: "file doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -99,15 +99,13 @@ export async function createFile(
           active_file: workspace.active_file,
         });
       } else {
-        next(
-          new HttpError({ status: 404, message: "workspace doesn't exist" }),
-        );
+        next(new ApiError({ status: 404, message: "workspace doesn't exist" }));
       }
     } else {
-      next(new HttpError({ status: 404, message: "user doesn't exist" }));
+      next(new ApiError({ status: 404, message: "user doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -143,10 +141,10 @@ export async function modifyFile(
         graphic: file.graphic,
       });
     } else {
-      next(new HttpError({ status: 404, message: "file doesn't exist" }));
+      next(new ApiError({ status: 404, message: "file doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -216,10 +214,10 @@ export async function deleteFile(
         active_workspace: workbench?.active_workspace,
       });
     } else {
-      next(new HttpError({ status: 404, message: "file doesn't exist" }));
+      next(new ApiError({ status: 404, message: "file doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -265,10 +263,10 @@ export async function closeFile(
         active_workspace: workbench?.active_workspace,
       });
     } else {
-      next(new HttpError({ status: 404, message: "file doesn't exist" }));
+      next(new ApiError({ status: 404, message: "file doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -322,10 +320,10 @@ export async function publishFile(
       ]);
       response.json({ file_id: file._id });
     } else {
-      next(new HttpError({ status: 404, message: "file doesn't exist" }));
+      next(new ApiError({ status: 404, message: "file doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }
 
@@ -343,7 +341,7 @@ export async function unpublishFile(
       .equals(false)
       .exec();
     if (!file?.published) {
-      next(new HttpError({ status: 400, message: "file not published" }));
+      next(new ApiError({ status: 400, message: "file not published" }));
     }
     const user = await User.findOne({ username: request.params.username })
       .where("deleted")
@@ -365,9 +363,9 @@ export async function unpublishFile(
       ]);
       response.end();
     } else {
-      next(new HttpError({ status: 404, message: "file doesn't exist" }));
+      next(new ApiError({ status: 404, message: "file doesn't exist" }));
     }
   } catch (error) {
-    next(new HttpError({ status: 500, cause: error }));
+    next(new ApiError({ status: 500, cause: error }));
   }
 }

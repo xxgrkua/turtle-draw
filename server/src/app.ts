@@ -12,7 +12,7 @@ import getConfig from "../../config";
 import errorHandler from "./controllers/error";
 import { restrictHttpMethod } from "./controllers/httpmethod";
 import notFound from "./controllers/notfound";
-import HttpError from "./http_error";
+import { ApiError, HttpError } from "./http_error";
 import apiRouter from "./routes/api";
 
 mongoose.set("strictQuery", false);
@@ -49,12 +49,21 @@ async function main() {
         next: express.NextFunction,
         options: rateLimitOptions,
       ) => {
-        next(
-          new HttpError({
-            status: options.statusCode,
-            message: String(options.message),
-          }),
-        );
+        if (request.url.includes("/api/")) {
+          next(
+            new ApiError({
+              status: options.statusCode,
+              message: String(options.message),
+            }),
+          );
+        } else {
+          next(
+            new HttpError({
+              status: options.statusCode,
+              message: String(options.message),
+            }),
+          );
+        }
       },
     });
 
@@ -75,6 +84,7 @@ async function main() {
     resave: false,
     saveUninitialized: false,
     store: CONFIG.store,
+    rolling: true,
     cookie: {
       secure: false,
       httpOnly: true,
