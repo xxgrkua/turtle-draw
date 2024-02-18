@@ -1,4 +1,4 @@
-import { nanoid } from "@reduxjs/toolkit";
+import { PayloadAction, nanoid } from "@reduxjs/toolkit";
 import axios from "axios";
 import { getInterpreter } from "rust-scheme";
 import { createAppSlice } from "../../app/createAppSlice";
@@ -93,6 +93,22 @@ export const workbenchSlice = createAppSlice({
   name: "workbench",
   initialState,
   reducers: (create) => ({
+    createWorkspaceLocal: create.reducer(
+      (state, action: PayloadAction<{ name: string }>) => {
+        const id = nanoid();
+        state.workspaceIds.push(id);
+        state.workspaces[id] = {
+          id,
+          name: action.payload.name,
+          fileIds: [],
+          files: {},
+          openedFiles: [],
+          activeFile: null,
+          state: "idle",
+          error: null,
+        };
+      },
+    ),
     initWorkbench: create.asyncThunk<WorkbenchResponse | null>(
       async (_, thunkAPI) => {
         const userInfo = selectUserInfo(
@@ -825,4 +841,5 @@ export const {
   deleteFile,
   updateFile,
   closeFile,
+  createWorkspaceLocal,
 } = workbenchSlice.actions;

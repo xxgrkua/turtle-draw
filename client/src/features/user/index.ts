@@ -75,9 +75,8 @@ export const userSlice = createAppSlice({
         pending: (state) => {
           state.state = "loading";
         },
-        fulfilled: (state, action) => {
+        fulfilled: (state) => {
           state.state = "succeeded";
-          state.userInfo = action.payload;
         },
         rejected: (state, action) => {
           state.state = "failed";
@@ -201,6 +200,14 @@ export const userSlice = createAppSlice({
         },
       },
     ),
+
+    resetState: create.reducer((state) => {
+      state.state = "idle";
+    }),
+
+    setUserInfo: create.reducer((state, action: { payload: UserInfo }) => {
+      state.userInfo = action.payload;
+    }),
   }),
 
   selectors: {
@@ -218,5 +225,13 @@ export const {
   selectUserInfo,
 } = userSlice.selectors;
 
-export const { init, login, logout, register, updateUser, deleteUser } =
-  userSlice.actions;
+export const {
+  init,
+  login,
+  logout,
+  register,
+  updateUser,
+  deleteUser,
+  resetState,
+  setUserInfo,
+} = userSlice.actions;

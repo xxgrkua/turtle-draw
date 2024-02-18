@@ -3,9 +3,8 @@ import React, { useEffect } from "react";
 import { Grid, Paper } from "@mui/material";
 import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import { selectUserInfo } from "../../features/user";
 import {
-  createFile,
-  createWorkspace,
   initWorkbench,
   selectActiveWorkspace,
   selectAllWorkspaces,
@@ -21,35 +20,13 @@ const Main: React.FC = function () {
   const dispatch = useAppDispatch();
   const workspaces = useAppSelector(selectAllWorkspaces);
   const activeWorkspace = useSelector(selectActiveWorkspace);
+  const userInfo = useAppSelector(selectUserInfo);
 
   useEffect(() => {
-    if (initState === "idle") {
-      dispatch(initWorkbench()).catch((error) => {
-        console.log(error);
-      });
-    }
-  }, [initState, dispatch]);
-
-  useEffect(() => {
-    if (workspaces.length === 0) {
-      dispatch(createWorkspace({ name: "Workspace 1" })).catch((error) => {
-        console.log(error);
-      });
-    }
-  }, [workspaces, dispatch]);
-
-  useEffect(() => {
-    if (activeWorkspace && activeWorkspace.fileIds.length === 0) {
-      dispatch(
-        createFile({
-          workspace_id: activeWorkspace.id,
-          name: "Untitled.scm",
-        }),
-      ).catch((error) => {
-        console.log(error);
-      });
-    }
-  }, [activeWorkspace, dispatch]);
+    dispatch(initWorkbench()).catch((error) => {
+      console.log(error);
+    });
+  }, [dispatch]);
 
   return (
     <Grid container>
