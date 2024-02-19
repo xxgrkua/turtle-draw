@@ -1,0 +1,4 @@
+.graphic-cards {
+  min-height: calc(100vh - 69px);
+  background-color: rgba(243, 246, 249, 0.6);
+}

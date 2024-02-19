@@ -17,13 +17,11 @@
     "load_db": "node scripts/loadDatabase.js"
   },
   "dependencies": {
-    "@ant-design/pro-components": "^2.6.49",
     "@emotion/react": "^11.11.3",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.15.10",
     "@mui/material": "^5.15.10",
     "@reduxjs/toolkit": "^2.2.1",
-    "antd": "^5.14.1",
     "argon2": "^0.31.2",
     "axios": "^1.6.7",
     "compression": "^1.7.4",
@@ -42,7 +40,7 @@
     "redux-persist": "^6.0.0",
     "rust-scheme": "file:rust/pkg",
     "tsx": "^4.7.1",
-    "vite-express": "^0.13.0"
+    "vite-express": "^0.15.0"
   },
   "devDependencies": {
     "@types/compression": "^1.7.5",
@@ -50,8 +48,8 @@
     "@types/express-session": "^1.17.10",
     "@types/react": "^18.2.56",
     "@types/react-dom": "^18.2.19",
-    "@typescript-eslint/eslint-plugin": "^6.21.0",
-    "@typescript-eslint/parser": "^6.21.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
     "@vitejs/plugin-react": "^4.2.1",
     "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
