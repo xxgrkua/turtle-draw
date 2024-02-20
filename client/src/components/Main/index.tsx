@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-import { Grid, Paper } from "@mui/material";
+import { Grid, Paper, ThemeProvider, createTheme } from "@mui/material";
 import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectUserInfo } from "../../features/user";
@@ -28,18 +28,31 @@ const Main: React.FC = function () {
     });
   }, [dispatch]);
 
+  const theme = createTheme({
+    palette: {
+      background: {
+        paper: "#F3F3F3",
+      },
+    },
+  });
+
   return (
     <Grid container>
       <Grid item xs={12}>
         <TopBar />
       </Grid>
       <Grid item xs={2}>
-        <Paper elevation={1} className="side-bar">
-          <SideBar />
-        </Paper>
+        <ThemeProvider theme={theme}>
+          <Paper elevation={0} square className="side-bar">
+            <SideBar />
+          </Paper>
+          <Paper elevation={1}>a</Paper>
+          <Paper elevation={2}>a</Paper>
+          <Paper elevation={24}>a</Paper>
+        </ThemeProvider>
       </Grid>
       <Grid item xs={10}>
-        <Paper elevation={0} className="editor-tabs">
+        <Paper elevation={0} square className="editor-tabs">
           <EditorTabs />
         </Paper>
       </Grid>

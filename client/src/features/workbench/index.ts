@@ -1,4 +1,4 @@
-import { PayloadAction, nanoid } from "@reduxjs/toolkit";
+import { nanoid } from "@reduxjs/toolkit";
 import axios from "axios";
 import { getInterpreter } from "rust-scheme";
 import { createAppSlice } from "../../app/createAppSlice";
@@ -6,6 +6,11 @@ import { ApiErrorMessage } from "../../types/api";
 import { UserSliceState, selectUserInfo } from "../user";
 
 const Interpreters: { [file_id: string]: (code: string) => string } = {};
+
+interface FileRef {
+  id: string;
+  name: string;
+}
 
 interface WorkspaceResponse {
   id: string;
@@ -18,7 +23,7 @@ interface WorkspaceResponse {
 export interface WorkspaceRef {
   id: string;
   name: string;
-  files: string[];
+  files: FileRef[];
   opened_files: string[];
   active_file: string | null;
 }
@@ -65,7 +70,7 @@ interface FileState {
 interface WorkspaceState {
   id: string;
   name: string;
-  fileIds: string[];
+  fileRefs: FileRef[];
   files: { [id: string]: FileState };
   openedFiles: string[];
   activeFile: string | null;
@@ -81,20 +86,22 @@ interface WorkbenchState {
   error: string | null;
 }
 
-const workspaceId = nanoid();
-const fileId = nanoid();
+const initialWorkspaceId = nanoid();
+const initialFileId = nanoid();
+const initialWorkspaceName = "Workspace";
+const initialFileName = "Untitled.scm";
 
 const initialState: WorkbenchState = {
-  workspaceIds: [workspaceId],
+  workspaceIds: [initialWorkspaceId],
   workspaces: {
     workspaceId: {
-      id: workspaceId,
-      name: "Workspace",
-      fileIds: [fileId],
+      id: initialWorkspaceId,
+      name: initialWorkspaceName,
+      fileRefs: [{ id: initialFileId, name: initialFileName }],
       files: {
         fileId: {
-          id: fileId,
-          name: "Untitled.scm",
+          id: initialFileId,
+          name: initialFileName,
           content: "",
           terminal: {
             history: [],
@@ -108,13 +115,13 @@ const initialState: WorkbenchState = {
           error: null,
         },
       },
-      openedFiles: [fileId],
-      activeFile: fileId,
+      openedFiles: [initialFileId],
+      activeFile: initialFileId,
       state: "idle",
       error: null,
     },
   },
-  activeWorkspace: workspaceId,
+  activeWorkspace: initialWorkspaceId,
   initState: "idle",
   error: null,
 };
@@ -123,22 +130,6 @@ export const workbenchSlice = createAppSlice({
   name: "workbench",
   initialState,
   reducers: (create) => ({
-    createWorkspaceLocal: create.reducer(
-      (state, action: PayloadAction<{ name: string }>) => {
-        const id = nanoid();
-        state.workspaceIds.push(id);
-        state.workspaces[id] = {
-          id,
-          name: action.payload.name,
-          fileIds: [],
-          files: {},
-          openedFiles: [],
-          activeFile: null,
-          state: "idle",
-          error: null,
-        };
-      },
-    ),
     initWorkbench: create.asyncThunk<WorkbenchResponse | null>(
       async (_, thunkAPI) => {
         const userInfo = selectUserInfo(
@@ -176,7 +167,7 @@ export const workbenchSlice = createAppSlice({
               state.workspaces[workspace.id] = {
                 id: workspace.id,
                 name: workspace.name,
-                fileIds: workspace.files,
+                fileRefs: workspace.files,
                 files: {},
                 openedFiles: workspace.opened_files,
                 activeFile: workspace.active_file,
@@ -233,7 +224,7 @@ export const workbenchSlice = createAppSlice({
           state.workspaces[action.payload.id] = {
             id: action.payload.id,
             name: action.payload.name,
-            fileIds: action.payload.files,
+            fileRefs: action.payload.files,
             files: {},
             openedFiles: action.payload.opened_files,
             activeFile: action.payload.active_file,
@@ -479,9 +470,10 @@ export const workbenchSlice = createAppSlice({
         fulfilled: (state, action) => {
           if ("workspace_id" in action.payload) {
             state.workspaces[action.payload.workspace_id].state = "succeeded";
-            state.workspaces[action.payload.workspace_id].fileIds.push(
-              action.payload.id,
-            );
+            state.workspaces[action.payload.workspace_id].fileRefs.push({
+              id: action.payload.id,
+              name: action.payload.name,
+            });
             state.workspaces[action.payload.workspace_id].files[
               action.payload.id
             ] = {
@@ -506,9 +498,10 @@ export const workbenchSlice = createAppSlice({
               action.payload.id;
           } else {
             state.workspaces[action.meta.arg.workspace_id].state = "succeeded";
-            state.workspaces[action.meta.arg.workspace_id].fileIds.push(
-              action.payload.id,
-            );
+            state.workspaces[action.meta.arg.workspace_id].fileRefs.push({
+              id: action.payload.id,
+              name: action.payload.name,
+            });
             state.workspaces[action.meta.arg.workspace_id].files[
               action.payload.id
             ] = {
@@ -617,9 +610,9 @@ export const workbenchSlice = createAppSlice({
               }
             }
           }
-          state.workspaces[action.meta.arg.workspace_id].fileIds =
-            state.workspaces[action.meta.arg.workspace_id].fileIds.filter(
-              (id) => id !== action.payload.deleted_file,
+          state.workspaces[action.meta.arg.workspace_id].fileRefs =
+            state.workspaces[action.meta.arg.workspace_id].fileRefs.filter(
+              ({ id }) => id !== action.payload.deleted_file,
             );
           delete state.workspaces[action.meta.arg.workspace_id].files[
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -872,5 +865,4 @@ export const {
   deleteFile,
   updateFile,
   closeFile,
-  createWorkspaceLocal,
 } = workbenchSlice.actions;
