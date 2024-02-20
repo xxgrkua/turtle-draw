@@ -25,7 +25,9 @@ export async function getWorkspaces(
             return {
               id: ws._id,
               name: ws.name,
-              files: ws.files,
+              files: ws.files.map((file) => {
+                return { id: file._id, name: file.name };
+              }),
               opened_files: ws.opened_files,
               active_file: ws.active_file || null,
             };

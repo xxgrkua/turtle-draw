@@ -108,7 +108,10 @@ export async function createFile(
           content: file.content,
           graphic: file.graphic.content,
           workspace_id: workspace._id,
-          workspace_files: workspace.files,
+          workspace_files: workspace.files.map((f) => ({
+            id: f._id,
+            name: f.name,
+          })),
           workspace_opened_files: workspace.opened_files,
           workspace_active_file: workspace.active_file,
         });
@@ -269,7 +272,7 @@ export async function closeFile(
       workspace?.files.id(file._id) &&
       workspace.opened_files.includes(file._id)
     ) {
-      if (workspace.active_file === file._id) {
+      if (workspace.active_file?.equals(file._id)) {
         const index = workspace.opened_files.indexOf(file._id);
         if (index > 0) {
           workspace.active_file = workspace.opened_files[index - 1];
