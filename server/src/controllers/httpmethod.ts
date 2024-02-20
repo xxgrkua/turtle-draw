@@ -9,7 +9,7 @@ export function restrictHttpMethod(
   next: express.NextFunction,
 ) {
   if (!ALLOWED_METHODS.includes(request.method)) {
-    if (request.url.includes("/api/")) {
+    if (request.url.startsWith("/api/")) {
       next(
         new ApiError({
           status: 405,

@@ -49,7 +49,7 @@ async function main() {
         next: express.NextFunction,
         options: rateLimitOptions,
       ) => {
-        if (request.url.includes("/api/")) {
+        if (request.url.startsWith("/api/")) {
           next(
             new ApiError({
               status: options.statusCode,

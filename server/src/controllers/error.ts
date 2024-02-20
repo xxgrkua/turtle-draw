@@ -12,7 +12,7 @@ function errorHandler(
     return;
   }
   if (!(error instanceof HttpError)) {
-    if (request.url.includes("/api/")) {
+    if (request.url.startsWith("/api/")) {
       error = new ApiError({
         status: 500,
         message: "Internal Server Error",
