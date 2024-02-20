@@ -145,9 +145,9 @@ export async function modifyWorkspace(
           await Promise.all(
             request.body.opened_files.map(
               (file_id: mongoose.Types.ObjectId) => {
-                async () => {
+                return (async () => {
                   if (
-                    !workspace.files.includes(file_id) ||
+                    !workspace.files.id(file_id) ||
                     !(await File.findById(file_id)
                       .where("deleted")
                       .equals(false)
@@ -160,7 +160,7 @@ export async function modifyWorkspace(
                       }),
                     );
                   }
-                };
+                })();
               },
             ),
           );

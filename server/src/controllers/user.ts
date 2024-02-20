@@ -76,11 +76,11 @@ export async function deleteUser(
       .exec();
     if (user) {
       await Promise.all([
-        async () => {
+        (async () => {
           user.published_files.pull();
           user.deleted = true;
           await user.save();
-        },
+        })(),
         deleteWorkbench(user._id),
         deleteFiles(user._id),
         deletePublishedFiles(user._id),
@@ -258,7 +258,7 @@ export async function register(
           workspaces: [
             {
               name: "Workspace",
-              files: [file._id],
+              files: [{ _id: file._id, name: file.name }],
               opened_files: [file._id],
               active_file: file._id,
               deleted: false,

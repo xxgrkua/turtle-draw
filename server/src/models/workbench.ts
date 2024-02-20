@@ -1,9 +1,19 @@
 import mongoose, { Schema, Types } from "mongoose";
 
+interface IFileRef {
+  _id: Types.ObjectId;
+  name: string;
+}
+
+const fileRefSchema = new Schema<IFileRef>({
+  _id: { type: Schema.Types.ObjectId, required: true, ref: "File" },
+  name: { type: String, required: true },
+});
+
 interface IWorkspace {
   _id: Types.ObjectId;
   name: string;
-  files: Types.Array<Types.ObjectId>;
+  files: Types.DocumentArray<IFileRef>;
   opened_files: Types.Array<Types.ObjectId>;
   active_file?: Types.ObjectId;
   deleted: boolean;
@@ -11,7 +21,7 @@ interface IWorkspace {
 
 const workspaceSchema = new Schema<IWorkspace>({
   name: { type: String, required: true },
-  files: [{ type: Schema.Types.ObjectId, ref: "File" }],
+  files: [{ type: fileRefSchema }],
   opened_files: [{ type: Schema.Types.ObjectId, ref: "File" }],
   active_file: { type: Schema.Types.ObjectId, ref: "File" },
   deleted: { type: Boolean, required: true, default: false },

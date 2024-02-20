@@ -49,7 +49,7 @@ export async function getFile(
       username: request.params.username,
     }).exec();
     const workspace = workbench?.workspaces.id(request.params.workspaceId);
-    if (file && workspace?.files.includes(file._id)) {
+    if (file && workspace?.files.id(file._id)) {
       response.json({
         id: file._id,
         name: file.name,
@@ -88,7 +88,7 @@ export async function createFile(
           published: false,
           deleted: false,
         });
-        workspace.files.push(file._id);
+        workspace.files.push({ _id: file._id, name: file.name });
         workspace.opened_files.push(file._id);
         workspace.active_file = file._id;
         workbench.active_workspace = workspace._id;
@@ -135,7 +135,7 @@ export async function modifyFile(
       username: request.params.username,
     }).exec();
     const workspace = workbench?.workspaces.id(request.params.workspaceId);
-    if (file && workspace?.files.includes(file._id)) {
+    if (file && workspace?.files.id(file._id)) {
       file.content = request.body.content || file.content;
       file.graphic = { content: request.body.graphic || file.graphic.content };
       file.name = request.body.name || file.name;
@@ -180,17 +180,17 @@ export async function deleteFile(
       username: request.params.username,
     }).exec();
     const workspace = workbench?.workspaces.id(request.params.workspaceId);
-    if (file && workspace?.files.includes(file._id)) {
+    if (file && workspace?.files.id(file._id)) {
       await Promise.all([
-        async () => {
+        (async () => {
           file.deleted = true;
           await file.save();
-        },
-        async () => {
+        })(),
+        (async () => {
           await PublishedFile.deleteOne({ file_id: file._id }).exec();
-        },
+        })(),
         deleteOnePublishedFileFromUser(file.user_id, file._id),
-        async () => {
+        (async () => {
           if (workspace.opened_files.includes(file._id)) {
             // file is opened
             // so we need to find another file to be active
@@ -199,21 +199,21 @@ export async function deleteFile(
               workspace.active_file = workspace.opened_files[index - 1];
             } else {
               if (workspace.files.length > 1) {
-                workspace.active_file = workspace.files[1];
+                workspace.active_file = workspace.files[1]._id;
               } else {
                 workspace.active_file = undefined;
               }
             }
-            workspace.files.pull(file._id);
+            workspace.files.pull({ _id: file._id, name: file.name });
             workspace.opened_files.pull(file._id);
           } else {
             // file is not opened
             // so active file is not changed
-            workspace.files.pull(file._id);
+            workspace.files.pull({ _id: file._id, name: file.name });
           }
 
           await workbench?.save();
-        },
+        })(),
       ]);
       response.json({
         active_file: workspace.active_file || null,
@@ -245,7 +245,7 @@ export async function closeFile(
     const workspace = workbench?.workspaces.id(request.params.workspaceId);
     if (
       file &&
-      workspace?.files.includes(file._id) &&
+      workspace?.files.id(file._id) &&
       workspace.opened_files.includes(file._id)
     ) {
       if (workspace.active_file === file._id) {
@@ -254,7 +254,7 @@ export async function closeFile(
           workspace.active_file = workspace.opened_files[index - 1];
         } else {
           if (workspace.files.length > 1) {
-            workspace.active_file = workspace.files[1];
+            workspace.active_file = workspace.files[1]._id;
           } else {
             workspace.active_file = undefined;
           }
@@ -298,15 +298,15 @@ export async function publishFile(
       .exec();
     if (file && user) {
       await Promise.all([
-        async () => {
+        (async () => {
           file.published = true;
           await file.save();
-        },
-        async () => {
+        })(),
+        (async () => {
           user.published_files.addToSet(file._id);
           await user.save();
-        },
-        async () => {
+        })(),
+        (async () => {
           await PublishedFile.findOneAndUpdate(
             { file_id: file._id },
             {
@@ -321,7 +321,7 @@ export async function publishFile(
               upsert: true,
             },
           ).exec();
-        },
+        })(),
       ]);
       response.json({ file_id: file._id });
     } else {
@@ -354,17 +354,17 @@ export async function unpublishFile(
       .exec();
     if (file && user) {
       await Promise.all([
-        async () => {
+        (async () => {
           file.published = false;
           await file.save();
-        },
-        async () => {
+        })(),
+        (async () => {
           await PublishedFile.deleteOne({ file_id: file._id }).exec();
-        },
-        async () => {
+        })(),
+        (async () => {
           user.published_files.pull(file._id);
           await user.save();
-        },
+        })(),
       ]);
       response.end();
     } else {
