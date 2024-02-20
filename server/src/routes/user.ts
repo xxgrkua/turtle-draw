@@ -99,6 +99,16 @@ router.post(
       .isLength({ min: 8, max: 100 })
       .withMessage("password is not between 8 and 100 characters")
       .bail(),
+    body("nickname")
+      .optional()
+      .isString()
+      .withMessage("nickname is not a string")
+      .bail(),
+    body("init")
+      .optional()
+      .isBoolean()
+      .withMessage("init is not a boolean")
+      .bail(),
   ]),
   register,
 );

@@ -213,14 +213,19 @@ export async function register(
   request: express.Request<
     ParamsDictionary,
     any,
-    { username: string; nickname: string; password: string }
+    {
+      username: string;
+      nickname: string;
+      password: string;
+      init?: boolean;
+    }
   >,
   response: express.Response,
   next: express.NextFunction,
 ) {
   try {
     let { nickname } = request.body;
-    const { username, password } = request.body;
+    const { username, password, init } = request.body;
     if (
       await User.findOne({ username: username })
         .where("deleted")
@@ -237,12 +242,40 @@ export async function register(
         published_files: [],
         deleted: false,
       });
-      await Workbench.create({
-        user_id: user._id,
-        username: user.username,
-        workspaces: [],
-        deleted: false,
-      });
+      if (init) {
+        const file = await File.create({
+          user_id: user._id,
+          name: "Untitled.scm",
+          content: "",
+          username: user.username,
+          graphic: { content: "" },
+          published: false,
+          deleted: false,
+        });
+        const workbench = await Workbench.create({
+          user_id: user._id,
+          username: user.username,
+          workspaces: [
+            {
+              name: "Workspace",
+              files: [file._id],
+              opened_files: [file._id],
+              active_file: file._id,
+              deleted: false,
+            },
+          ],
+          deleted: false,
+        });
+        workbench.active_workspace = workbench.workspaces[0]._id;
+        await workbench.save();
+      } else {
+        await Workbench.create({
+          user_id: user._id,
+          username: user.username,
+          workspaces: [],
+          deleted: false,
+        });
+      }
       response.json({
         user_id: user._id,
         username: user.username,

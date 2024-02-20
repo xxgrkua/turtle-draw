@@ -87,15 +87,22 @@ export const userSlice = createAppSlice({
 
     register: create.asyncThunk(
       async (
-        payload: { username: string; nickname?: string; password: string },
+        payload: {
+          username: string;
+          nickname?: string;
+          password: string;
+          init?: boolean;
+        },
         thunkAPI,
       ) => {
         try {
-          await axios.post<UserInfo>("/api/user/register", {
+          const { data } = await axios.post<UserInfo>("/api/user/register", {
             username: payload.username,
             nickname: payload.nickname,
             password: payload.password,
+            init: payload.init,
           });
+          return data;
         } catch (error) {
           if (axios.isAxiosError<ApiErrorMessage>(error) && error.response) {
             return thunkAPI.rejectWithValue(error.response.data.error);

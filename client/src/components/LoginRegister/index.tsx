@@ -86,47 +86,46 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ type }) => {
     }
   };
 
-  const handleSubmit = (event: FormEvent<HTMLElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLElement>) => {
     event.preventDefault();
     setStartCheck(true);
     if (!checkForm([username, password])) {
       return;
     }
     if (type === "register") {
-      dispatch(
-        register({
-          username: username || "",
-          password: password || "",
-          nickname: nickname || "",
-        }),
-      )
-        .unwrap()
-        .then(() => {
-          setStartCheck(false);
-          setTimeout(() => {
-            setUsername("");
-            setPassword("");
-            setNickname("");
-            navigate("/login");
-          }, 2000);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      try {
+        await dispatch(
+          register({
+            username: username || "",
+            password: password || "",
+            nickname: nickname || "",
+            init: true,
+          }),
+        ).unwrap();
+        setStartCheck(false);
+        setTimeout(() => {
+          setUsername("");
+          setPassword("");
+          setNickname("");
+          navigate("/login");
+        }, 2000);
+      } catch (error) {
+        console.log(error);
+      }
     } else {
-      dispatch(login({ username: username || "", password: password || "" }))
-        .unwrap()
-        .then((data) => {
-          setStartCheck(false);
-          setTimeout(() => {
-            setUsername("");
-            setPassword("");
-            dispatch(setUserInfo(data));
-          }, 2000);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+      try {
+        const data = await dispatch(
+          login({ username: username || "", password: password || "" }),
+        ).unwrap();
+        setStartCheck(false);
+        setTimeout(() => {
+          setUsername("");
+          setPassword("");
+          dispatch(setUserInfo(data));
+        }, 2000);
+      } catch (error) {
+        console.log(error);
+      }
     }
   };
 
@@ -157,7 +156,11 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ type }) => {
             )}
             <Box
               component="form"
-              onSubmit={handleSubmit}
+              onSubmit={(event) => {
+                handleSubmit(event).catch((error) => {
+                  console.log(error);
+                });
+              }}
               noValidate
               sx={{ mt: 1 }}
             >

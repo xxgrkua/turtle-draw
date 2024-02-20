@@ -15,7 +15,7 @@ interface WorkspaceResponse {
   active_workspace: string;
 }
 
-interface WorkspaceRef {
+export interface WorkspaceRef {
   id: string;
   name: string;
   files: string[];
@@ -81,10 +81,40 @@ interface WorkbenchState {
   error: string | null;
 }
 
+const workspaceId = nanoid();
+const fileId = nanoid();
+
 const initialState: WorkbenchState = {
-  workspaceIds: [],
-  workspaces: {},
-  activeWorkspace: null,
+  workspaceIds: [workspaceId],
+  workspaces: {
+    workspaceId: {
+      id: workspaceId,
+      name: "Workspace",
+      fileIds: [fileId],
+      files: {
+        fileId: {
+          id: fileId,
+          name: "Untitled.scm",
+          content: "",
+          terminal: {
+            history: [],
+            current: "",
+          },
+          graphic: {
+            content: "",
+          },
+          saved: true,
+          state: "idle",
+          error: null,
+        },
+      },
+      openedFiles: [fileId],
+      activeFile: fileId,
+      state: "idle",
+      error: null,
+    },
+  },
+  activeWorkspace: workspaceId,
   initState: "idle",
   error: null,
 };
@@ -141,6 +171,7 @@ export const workbenchSlice = createAppSlice({
             state.workspaceIds = action.payload.workspaces.map(
               (workspace) => workspace.id,
             );
+            state.workspaces = {};
             for (const workspace of action.payload.workspaces) {
               state.workspaces[workspace.id] = {
                 id: workspace.id,
