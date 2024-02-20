@@ -79,6 +79,15 @@ export async function createFile(
     if (workbench && user) {
       const workspace = workbench.workspaces.id(request.params.workspaceId);
       if (workspace) {
+        if (workspace.files.some((file) => file.name === request.body.name)) {
+          next(
+            new ApiError({
+              status: 400,
+              message: "file with the same name already exists",
+            }),
+          );
+          return;
+        }
         const file = await File.create({
           name: request.body.name,
           content: "",
@@ -138,7 +147,19 @@ export async function modifyFile(
     if (file && workspace?.files.id(file._id)) {
       file.content = request.body.content || file.content;
       file.graphic = { content: request.body.graphic || file.graphic.content };
-      file.name = request.body.name || file.name;
+      if (request.body.name) {
+        if (workspace.files.some((f) => f.name === request.body.name)) {
+          next(
+            new ApiError({
+              status: 400,
+              message: "file with the same name already exists",
+            }),
+          );
+          return;
+        } else {
+          file.name = request.body.name;
+        }
+      }
       await file.save();
       response.json({
         id: file._id,
