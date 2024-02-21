@@ -1,32 +1,23 @@
 import React, { useEffect } from "react";
 
 import { Grid, Paper, ThemeProvider, createTheme } from "@mui/material";
-import { useSelector } from "react-redux";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectUserInfo } from "../../features/user";
-import {
-  initWorkbench,
-  selectActiveWorkspace,
-  selectAllWorkspaces,
-  selectWorkbenchState,
-} from "../../features/workbench";
+import { initWorkbench } from "../../features/workbench";
 import EditorTabs from "../EditorTabs";
 import SideBar from "../SideBar";
 import TopBar from "../TopBar";
 import "./style.css";
 
 const Main: React.FC = function () {
-  const initState = useAppSelector(selectWorkbenchState);
   const dispatch = useAppDispatch();
-  const workspaces = useAppSelector(selectAllWorkspaces);
-  const activeWorkspace = useSelector(selectActiveWorkspace);
   const userInfo = useAppSelector(selectUserInfo);
 
   useEffect(() => {
     dispatch(initWorkbench()).catch((error) => {
       console.log(error);
     });
-  }, [dispatch]);
+  }, [dispatch, userInfo]);
 
   const theme = createTheme({
     palette: {
@@ -46,9 +37,6 @@ const Main: React.FC = function () {
           <Paper elevation={0} square className="side-bar">
             <SideBar />
           </Paper>
-          <Paper elevation={1}>a</Paper>
-          <Paper elevation={2}>a</Paper>
-          <Paper elevation={24}>a</Paper>
         </ThemeProvider>
       </Grid>
       <Grid item xs={10}>

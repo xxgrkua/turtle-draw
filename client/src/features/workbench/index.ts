@@ -30,7 +30,7 @@ export interface WorkspaceRef {
 
 interface WorkbenchResponse {
   workspaces: WorkspaceRef[];
-  activeWorkspace: string | null;
+  active_workspace: string | null;
 }
 
 interface FileResponse {
@@ -94,7 +94,7 @@ const initialFileName = "Untitled.scm";
 const initialState: WorkbenchState = {
   workspaceIds: [initialWorkspaceId],
   workspaces: {
-    workspaceId: {
+    [initialWorkspaceId]: {
       id: initialWorkspaceId,
       name: initialWorkspaceName,
       fileRefs: [{ id: initialFileId, name: initialFileName }],
@@ -156,8 +156,8 @@ export const workbenchSlice = createAppSlice({
         pending: (state) => {
           state.initState = "loading";
         },
+
         fulfilled: (state, action) => {
-          state.initState = "succeeded";
           if (action.payload) {
             state.workspaceIds = action.payload.workspaces.map(
               (workspace) => workspace.id,
@@ -175,9 +175,11 @@ export const workbenchSlice = createAppSlice({
                 error: null,
               };
             }
-            state.activeWorkspace = action.payload.activeWorkspace;
+            state.activeWorkspace = action.payload.active_workspace;
           }
+          state.initState = "succeeded";
         },
+
         rejected: (state, action) => {
           state.initState = "failed";
           state.error = action.payload as string;
@@ -827,8 +829,11 @@ export const workbenchSlice = createAppSlice({
     selectAllWorkspaceIds: (state) => state.workspaceIds,
     selectWorkspaceById: (state, workspace_id: string) =>
       state.workspaces[workspace_id],
-    selectAllWorkspaces: (state) =>
-      state.workspaceIds.map((id) => state.workspaces[id]),
+    selectAllWorkspaces: (state) => {
+      return state.workspaceIds.map((id) => {
+        return state.workspaces[id];
+      });
+    },
     selectWorkbenchError: (state) => state.error,
     selectWorkbenchState: (state) => state.initState,
     selectFileById: (state, workspace_id: string, file_id: string) => {
@@ -836,10 +841,23 @@ export const workbenchSlice = createAppSlice({
       return workspace.files[file_id];
     },
     selectActiveWorkspace: (state) => {
-      return state.workspaces[state.activeWorkspace as string];
+      if (state.activeWorkspace) {
+        return state.workspaces[state.activeWorkspace];
+      } else {
+        return null;
+      }
     },
     selectInterpreterById: (state, file_id: string) => {
       return Interpreters[file_id];
+    },
+    selectWorkbenchInitState: (state) => state.initState,
+    selectActiveWorkspaceId: (state) => state.activeWorkspace,
+    selectOpenedFileRefs: (state, workspace_id: string) => {
+      return state.workspaces[workspace_id].openedFiles.map((id) => {
+        return state.workspaces[workspace_id].fileRefs.find(
+          (file) => file.id === id,
+        );
+      });
     },
   },
 });
@@ -853,6 +871,8 @@ export const {
   selectWorkbenchState,
   selectWorkspaceById,
   selectInterpreterById,
+  selectWorkbenchInitState,
+  selectActiveWorkspaceId,
 } = workbenchSlice.selectors;
 
 export const {

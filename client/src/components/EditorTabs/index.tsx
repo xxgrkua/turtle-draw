@@ -1,18 +1,42 @@
-import { Box, Grid, Paper, Tab, Tabs } from "@mui/material";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import SaveIcon from "@mui/icons-material/Save";
+import {
+  Box,
+  ButtonGroup,
+  Grid,
+  IconButton,
+  Paper,
+  Tab,
+  Tabs,
+  ThemeProvider,
+  Tooltip,
+  createTheme,
+} from "@mui/material";
 import React from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
 import { getInterpreter } from "rust-scheme";
+import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import {
+  createFile,
+  selectActiveWorkspace,
+  selectWorkbenchInitState,
+} from "../../features/workbench";
 import "./style.css";
 
-interface TabPanelProps {
-  index: number;
-  value: number;
+interface FileProps {
+  workspaceId: string;
+  fileId: string;
+  value: string | boolean;
 }
 
-function File(props: TabPanelProps) {
-  const { value, index, ...other } = props;
+function File(props: FileProps) {
+  const { value, fileId, workspaceId } = props;
+
+  const dispatch = useAppDispatch();
 
   const [code, setCode] = React.useState("");
   const [line, setLine] = React.useState("");
@@ -32,17 +56,49 @@ function File(props: TabPanelProps) {
     }
   };
 
+  const handleNewFile = () => {
+    dispatch(createFile({ workspace_id: workspaceId, name: "new file" })).catch(
+      (error) => {
+        console.log(error);
+      },
+    );
+  };
+
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && (
+    <div role="tabpanel" hidden={value !== fileId}>
+      {value === fileId && (
         <Grid container>
-          <Grid item xs={6}>
+          <Grid
+            item
+            xs={12}
+            sx={{
+              borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
+            }}
+          >
+            <ButtonGroup variant="text">
+              <Tooltip title="New File">
+                <IconButton onClick={handleNewFile}>
+                  <InsertDriveFileIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="New Workspace">
+                <IconButton>
+                  <CreateNewFolderIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Save">
+                <IconButton>
+                  <SaveIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Run">
+                <IconButton>
+                  <ArrowRightIcon sx={{ transform: "scale(1.8)" }} />
+                </IconButton>
+              </Tooltip>
+            </ButtonGroup>
+          </Grid>
+          <Grid item xs={6} sx={{ borderRight: "1px solid rgb(0,0,0,0.12)" }}>
             <Grid container direction={"column"}>
               <Grid item xs={12}>
                 <Paper className="editor">
@@ -67,7 +123,7 @@ function File(props: TabPanelProps) {
                 </Paper>
               </Grid>
               <Grid item xs={12}>
-                <Tabs value={0}>
+                <Tabs value={0} variant="fullWidth">
                   <Tab label="Terminal" />
                 </Tabs>
                 <Paper className="terminal">
@@ -109,9 +165,6 @@ function File(props: TabPanelProps) {
           <Grid item xs={6}>
             <Grid container direction={"column"}>
               <Grid item xs={12}>
-                <Tabs value={0}>
-                  <Tab label="Graphic" />
-                </Tabs>
                 <Paper className="canvas">canvas</Paper>
               </Grid>
             </Grid>
@@ -122,37 +175,121 @@ function File(props: TabPanelProps) {
   );
 }
 
-function a11yProps(index: number) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
+const tabTheme = createTheme({
+  components: {
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          height: "24px",
+          minHeight: "24px",
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          height: "24px",
+          minHeight: "24px",
+          textTransform: "none",
+          fontFamily: [
+            "-apple-system",
+            "BlinkMacSystemFont",
+            '"Segoe UI"',
+            "Roboto",
+            '"Helvetica Neue"',
+            "Arial",
+            "sans-serif",
+            '"Apple Color Emoji"',
+            '"Segoe UI Emoji"',
+            '"Segoe UI Symbol"',
+          ].join(","),
+          "&.Mui-selected": {
+            backgroundColor: "white",
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      defaultProps: {
+        size: "small",
+      },
+      styleOverrides: {
+        sizeSmall: {
+          "& svg": {
+            fontSize: "1em",
+          },
+        },
+      },
+    },
+  },
+});
 
 export default function EditorTabs() {
-  const [value, setValue] = React.useState(0);
+  const activeWorkspace = useAppSelector(selectActiveWorkspace);
+  const initState = useAppSelector(selectWorkbenchInitState);
+  const dispatch = useAppDispatch();
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+  const [value, setValue] = React.useState(
+    activeWorkspace ? activeWorkspace.activeFile : false,
+  );
+
+  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    // if (activeWorkspace) {
+    //   dispatch(
+    //     updateWorkspace({
+    //       workspace_id: activeWorkspace.id,
+    //       active_file: newValue,
+    //     }),
+    //   ).catch((error) => {
+    //     console.log(error);
+    //   });
+    // }
+    console.log(newValue);
     setValue(newValue);
   };
 
   return (
-    <Box sx={{ width: "100%" }}>
-      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs
-          value={value}
-          onChange={handleChange}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          <Tab label="Item One" {...a11yProps(0)} />
-          <Tab label="Item Two" {...a11yProps(1)} />
-          <Tab label="Item Three" {...a11yProps(2)} />
-        </Tabs>
+    <ThemeProvider theme={tabTheme}>
+      <Box sx={{ width: "100%" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs
+            value={value}
+            onChange={handleChange}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{ backgroundColor: "rgb(243, 243, 243)" }}
+          >
+            {initState === "succeeded" && activeWorkspace
+              ? activeWorkspace.fileRefs
+                  .filter(({ id: fileId }) =>
+                    activeWorkspace.openedFiles.includes(fileId),
+                  )
+                  .map(({ id: fileId, name: filename }) => {
+                    return (
+                      <Tab
+                        label={filename}
+                        key={fileId}
+                        value={fileId}
+                        sx={{ backgroundColor: "rgb(236,236,236)" }}
+                      />
+                    );
+                  })
+              : null}
+          </Tabs>
+        </Box>
+        {initState === "succeeded" && activeWorkspace && value
+          ? activeWorkspace.openedFiles.map((fileId) => {
+              return (
+                <File
+                  value={value}
+                  fileId={fileId}
+                  workspaceId={activeWorkspace.id}
+                  key={fileId}
+                />
+              );
+            })
+          : null}
       </Box>
-      <File value={value} index={0} />
-      <File value={value} index={1} />
-      <File value={value} index={2} />
-    </Box>
+    </ThemeProvider>
   );
 }
