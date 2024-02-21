@@ -123,7 +123,17 @@ function File(props: FileProps) {
                 </Paper>
               </Grid>
               <Grid item xs={12}>
-                <Tabs value={0} variant="fullWidth">
+                <Tabs
+                  value={0}
+                  variant="fullWidth"
+                  sx={{
+                    borderTop: "1px solid rgb(0,0,0,0.12)",
+                    borderBottom: "1px solid rgb(0,0,0,0.12)",
+                  }}
+                  TabIndicatorProps={{
+                    sx: { display: "none" },
+                  }}
+                >
                   <Tab label="Terminal" />
                 </Tabs>
                 <Paper className="terminal">
@@ -258,6 +268,9 @@ export default function EditorTabs() {
             variant="scrollable"
             scrollButtons="auto"
             sx={{ backgroundColor: "rgb(243, 243, 243)" }}
+            TabIndicatorProps={{
+              sx: { display: "none" },
+            }}
           >
             {initState === "succeeded" && activeWorkspace
               ? activeWorkspace.fileRefs
