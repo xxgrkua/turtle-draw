@@ -172,8 +172,22 @@ export async function modifyWorkspace(
         workbench.active_workspace = request.body.active
           ? workspace._id
           : workbench.active_workspace;
-        workspace.active_file =
-          request.body.active_file || workspace.active_file;
+        if (request.body.active_file) {
+          if (!workspace.files.id(request.body.active_file)) {
+            next(
+              new ApiError({
+                status: 404,
+                message: "file doesn't exist",
+              }),
+            );
+            return;
+          } else if (
+            !workspace.opened_files.includes(request.body.active_file)
+          ) {
+            workspace.opened_files.push(request.body.active_file);
+          }
+          workspace.active_file = request.body.active_file;
+        }
 
         await workbench.save();
 
