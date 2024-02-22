@@ -1,4 +1,5 @@
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import CloseIcon from "@mui/icons-material/Close";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import SaveIcon from "@mui/icons-material/Save";
@@ -21,9 +22,11 @@ import "ace-builds/src-noconflict/mode-scheme";
 import { getInterpreter } from "rust-scheme";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
+  closeFile,
   createFile,
   selectActiveWorkspace,
   selectWorkbenchInitState,
+  updateWorkspace,
 } from "../../features/workbench";
 import "./style.css";
 
@@ -239,23 +242,24 @@ export default function EditorTabs() {
   const initState = useAppSelector(selectWorkbenchInitState);
   const dispatch = useAppDispatch();
 
-  const [value, setValue] = React.useState(
-    activeWorkspace ? activeWorkspace.activeFile : false,
-  );
+  // const [value, setValue] = React.useState(
+  //   activeWorkspace ? activeWorkspace.activeFile : false,
+  // );
 
-  const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    // if (activeWorkspace) {
-    //   dispatch(
-    //     updateWorkspace({
-    //       workspace_id: activeWorkspace.id,
-    //       active_file: newValue,
-    //     }),
-    //   ).catch((error) => {
-    //     console.log(error);
-    //   });
-    // }
-    console.log(newValue);
-    setValue(newValue);
+  const value = activeWorkspace ? activeWorkspace.activeFile : false;
+
+  const handleChange = async (
+    event: React.SyntheticEvent,
+    newValue: string,
+  ) => {
+    if (activeWorkspace) {
+      await dispatch(
+        updateWorkspace({
+          workspace_id: activeWorkspace.id,
+          active_file: newValue,
+        }),
+      );
+    }
   };
 
   return (
@@ -264,7 +268,11 @@ export default function EditorTabs() {
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs
             value={value}
-            onChange={handleChange}
+            onChange={(event, newValue: string) => {
+              handleChange(event, newValue).catch((error) => {
+                console.log(error);
+              });
+            }}
             variant="scrollable"
             scrollButtons="auto"
             sx={{ backgroundColor: "rgb(243, 243, 243)" }}
@@ -284,6 +292,25 @@ export default function EditorTabs() {
                         key={fileId}
                         value={fileId}
                         sx={{ backgroundColor: "rgb(236,236,236)" }}
+                        icon={
+                          <IconButton
+                            size="small"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              dispatch(
+                                closeFile({
+                                  workspace_id: activeWorkspace.id,
+                                  file_id: fileId,
+                                }),
+                              ).catch((error) => {
+                                console.log(error);
+                              });
+                            }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        }
+                        iconPosition="end"
                       />
                     );
                   })

@@ -99,7 +99,7 @@ const initialState: WorkbenchState = {
       name: initialWorkspaceName,
       fileRefs: [{ id: initialFileId, name: initialFileName }],
       files: {
-        fileId: {
+        [initialFileId]: {
           id: initialFileId,
           name: initialFileName,
           content: "",
@@ -318,7 +318,7 @@ export const workbenchSlice = createAppSlice({
           workspace_id: string;
           name?: string;
           active?: boolean;
-          active_file: string | null;
+          active_file?: string;
           opened_files?: string[];
         },
         thunkAPI,
@@ -334,6 +334,7 @@ export const workbenchSlice = createAppSlice({
                 name: payload.name,
                 active: payload.active,
                 opened_files: payload.opened_files,
+                active_file: payload.active_file,
               },
             );
             return data;
@@ -345,12 +346,25 @@ export const workbenchSlice = createAppSlice({
             }
           }
         } else {
+          const state = thunkAPI.getState() as {
+            workbench: WorkbenchState;
+          };
+          const workspace = state.workbench.workspaces[payload.workspace_id];
+          const opened_files = payload.opened_files ?? [
+            ...workspace.openedFiles,
+          ];
+          const active_file = payload.active_file ?? workspace.activeFile;
+          if (active_file && !opened_files.includes(active_file)) {
+            opened_files.push(active_file);
+          }
           return thunkAPI.fulfillWithValue({
             id: payload.workspace_id,
-            name: payload.name,
-            opened_files: payload.opened_files,
-            active_workspace: payload.active ? payload.workspace_id : null,
-            active_file: payload.active_file,
+            name: payload.name ?? workspace.name,
+            opened_files: opened_files,
+            active_workspace: payload.active
+              ? payload.workspace_id
+              : state.workbench.activeWorkspace,
+            active_file: active_file,
           });
         }
       },
@@ -361,12 +375,10 @@ export const workbenchSlice = createAppSlice({
 
         fulfilled: (state, action) => {
           state.workspaces[action.payload.id].state = "succeeded";
-          state.workspaces[action.payload.id].name =
-            action.payload.name ?? state.workspaces[action.payload.id].name;
+          state.workspaces[action.payload.id].name = action.payload.name;
           state.activeWorkspace = action.payload.active_workspace;
           state.workspaces[action.payload.id].openedFiles =
-            action.payload.opened_files ??
-            state.workspaces[action.payload.id].openedFiles;
+            action.payload.opened_files;
           state.workspaces[action.payload.id].activeFile =
             action.payload.active_file;
         },
@@ -456,12 +468,23 @@ export const workbenchSlice = createAppSlice({
             }
           }
         } else {
-          return thunkAPI.fulfillWithValue({
-            id: nanoid(),
-            name: payload.name,
-            content: "",
-            graphic: "",
-          });
+          const state = thunkAPI.getState() as { workbench: WorkbenchState };
+          if (
+            state.workbench.workspaces[payload.workspace_id].fileRefs.find(
+              ({ name }) => {
+                return name === payload.name;
+              },
+            )
+          ) {
+            return thunkAPI.rejectWithValue("File already exists");
+          } else {
+            return thunkAPI.fulfillWithValue({
+              id: nanoid(),
+              name: payload.name,
+              content: "",
+              graphic: "",
+            });
+          }
         }
       },
       {
