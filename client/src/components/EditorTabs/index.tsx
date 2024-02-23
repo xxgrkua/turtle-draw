@@ -288,9 +288,11 @@ export default function EditorTabs() {
                   .map(({ id: fileId, name: filename }) => {
                     return (
                       <Tab
+                        component="div"
                         label={filename}
                         key={fileId}
                         value={fileId}
+                        disableRipple
                         sx={{ backgroundColor: "rgb(236,236,236)" }}
                         icon={
                           <IconButton
