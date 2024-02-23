@@ -3,6 +3,7 @@ import CreateNewFolder from "@mui/icons-material/CreateNewFolder";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
 import {
+  AlertColor,
   Button,
   ButtonGroup,
   ThemeProvider,
@@ -181,7 +182,13 @@ const theme = createTheme({
   },
 });
 
-function SideBar(): React.ReactElement {
+interface SideBarProps {
+  handleError: (message: string, severity?: AlertColor) => void;
+}
+
+export default function SideBar({
+  handleError,
+}: SideBarProps): React.ReactElement {
   const workspaces = useAppSelector(selectAllWorkspaces);
   const dispatch = useAppDispatch();
   const initState = useAppSelector(selectWorkbenchState);
@@ -207,7 +214,7 @@ function SideBar(): React.ReactElement {
   const handleClick = async (workspace_id: string, file_id: string) => {
     await dispatch(
       updateWorkspace({ workspace_id, active: true, active_file: file_id }),
-    );
+    ).unwrap();
   };
 
   return (
@@ -247,6 +254,7 @@ function SideBar(): React.ReactElement {
                         label={name}
                         onClick={() => {
                           handleClick(workspace.id, id).catch((error) => {
+                            handleError(`${error}`, "error");
                             console.log(error);
                           });
                         }}
@@ -261,5 +269,3 @@ function SideBar(): React.ReactElement {
     </React.Fragment>
   );
 }
-
-export default SideBar;

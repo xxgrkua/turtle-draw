@@ -469,14 +469,18 @@ export const workbenchSlice = createAppSlice({
           }
         } else {
           const state = thunkAPI.getState() as { workbench: WorkbenchState };
-          if (
+          if (!payload.name) {
+            return thunkAPI.rejectWithValue("File name is required");
+          } else if (
             state.workbench.workspaces[payload.workspace_id].fileRefs.find(
               ({ name }) => {
                 return name === payload.name;
               },
             )
           ) {
-            return thunkAPI.rejectWithValue("File already exists");
+            return thunkAPI.rejectWithValue(
+              "File with the same name already exists",
+            );
           } else {
             return thunkAPI.fulfillWithValue({
               id: nanoid(),

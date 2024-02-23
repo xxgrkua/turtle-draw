@@ -1,16 +1,23 @@
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
+import PublishIcon from "@mui/icons-material/Publish";
 import SaveIcon from "@mui/icons-material/Save";
+import ShortcutIcon from "@mui/icons-material/Shortcut";
 import {
+  AlertColor,
   Box,
   ButtonGroup,
   Grid,
   IconButton,
   Paper,
+  Popover,
+  Stack,
   Tab,
   Tabs,
+  TextField,
   ThemeProvider,
   Tooltip,
   createTheme,
@@ -26,18 +33,85 @@ import {
   createFile,
   selectActiveWorkspace,
   selectWorkbenchInitState,
+  selectWorkspaceById,
   updateWorkspace,
 } from "../../features/workbench";
 import "./style.css";
 
+const theme = createTheme({
+  components: {
+    MuiTabs: {
+      styleOverrides: {
+        root: {
+          height: "24px",
+          minHeight: "24px",
+        },
+      },
+    },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          height: "24px",
+          minHeight: "24px",
+          textTransform: "none",
+          fontFamily: [
+            "-apple-system",
+            "BlinkMacSystemFont",
+            '"Segoe UI"',
+            "Roboto",
+            '"Helvetica Neue"',
+            "Arial",
+            "sans-serif",
+            '"Apple Color Emoji"',
+            '"Segoe UI Emoji"',
+            '"Segoe UI Symbol"',
+          ].join(","),
+          "&.Mui-selected": {
+            backgroundColor: "white",
+          },
+        },
+      },
+    },
+    MuiIconButton: {
+      defaultProps: {
+        size: "small",
+      },
+      styleOverrides: {
+        sizeSmall: {
+          "& svg": {
+            fontSize: "1em",
+          },
+        },
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        sizeSmall: {
+          fontSize: "0.75rem",
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        sizeSmall: {
+          fontSize: "0.75rem",
+        },
+      },
+    },
+  },
+});
 interface FileProps {
   workspaceId: string;
   fileId: string;
   value: string | boolean;
+  handleError: (message: string, severity?: AlertColor) => void;
 }
 
 function File(props: FileProps) {
-  const { value, fileId, workspaceId } = props;
+  const { value, fileId, workspaceId, handleError } = props;
+  const workspace = useAppSelector((state) => {
+    return selectWorkspaceById(state, workspaceId);
+  });
 
   const dispatch = useAppDispatch();
 
@@ -45,6 +119,11 @@ function File(props: FileProps) {
   const [line, setLine] = React.useState("");
 
   const [history, setHistory] = React.useState<string[]>([]);
+
+  const [newFileAnchorEl, setNewFileAnchorEl] =
+    React.useState<null | HTMLButtonElement>(null);
+  const [newWorkspaceAnchorEl, setNewWorkspaceAnchorEl] =
+    React.useState<null | HTMLButtonElement>(null);
 
   const interpreter = getInterpreter();
 
@@ -59,12 +138,43 @@ function File(props: FileProps) {
     }
   };
 
-  const handleNewFile = () => {
-    dispatch(createFile({ workspace_id: workspaceId, name: "new file" })).catch(
-      (error) => {
+  const getCurrentDefaultFileName = () => {
+    const fileSet = new Set(workspace.fileRefs.map(({ name }) => name));
+    let index = 0;
+    while (true) {
+      if (index === 0) {
+        if (!fileSet.has("Untitled.scm")) {
+          return "Untitled.scm";
+        }
+      } else {
+        if (!fileSet.has(`Untitled-${index}.scm`)) {
+          return `Untitled-${index}.scm`;
+        }
+      }
+      index++;
+    }
+  };
+
+  const [newFileName, setNewFileName] = React.useState(
+    getCurrentDefaultFileName(),
+  );
+  const [newWorkspaceName, setNewWorkspaceName] = React.useState("");
+
+  const handleNewFile = (name: string) => {
+    dispatch(createFile({ workspace_id: workspaceId, name }))
+      .unwrap()
+      .catch((error) => {
+        handleError(`${error}`, "error");
         console.log(error);
-      },
-    );
+      });
+  };
+
+  const handleNewFilePopover = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setNewFileAnchorEl(event.currentTarget);
+  };
+
+  const handleNewFilePopoverClose = () => {
+    setNewFileAnchorEl(null);
   };
 
   return (
@@ -80,10 +190,53 @@ function File(props: FileProps) {
           >
             <ButtonGroup variant="text">
               <Tooltip title="New File">
-                <IconButton onClick={handleNewFile}>
+                <IconButton onClick={handleNewFilePopover}>
                   <InsertDriveFileIcon />
                 </IconButton>
               </Tooltip>
+              <Popover
+                open={Boolean(newFileAnchorEl)}
+                anchorEl={newFileAnchorEl}
+                onClose={handleNewFilePopoverClose}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+              >
+                <Stack direction="row">
+                  <TextField
+                    label="filename"
+                    variant="outlined"
+                    size="small"
+                    sx={{ margin: "8px" }}
+                    value={newFileName}
+                    onChange={(event) => {
+                      setNewFileName(event.currentTarget.value);
+                    }}
+                  />
+                  <IconButton
+                    size="medium"
+                    color="success"
+                    onClick={() => {
+                      handleNewFile(newFileName);
+                      handleNewFilePopoverClose();
+                      setNewFileName(getCurrentDefaultFileName());
+                    }}
+                  >
+                    <CheckIcon />
+                  </IconButton>
+                  <IconButton
+                    size="medium"
+                    color="error"
+                    onClick={() => {
+                      handleNewFilePopoverClose();
+                      setNewFileName(getCurrentDefaultFileName());
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </Stack>
+              </Popover>
               <Tooltip title="New Workspace">
                 <IconButton>
                   <CreateNewFolderIcon />
@@ -97,6 +250,16 @@ function File(props: FileProps) {
               <Tooltip title="Run">
                 <IconButton>
                   <ArrowRightIcon sx={{ transform: "scale(1.8)" }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Publish">
+                <IconButton>
+                  <PublishIcon sx={{ transform: "scale(1.2)" }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Export">
+                <IconButton>
+                  <ShortcutIcon />
                 </IconButton>
               </Tooltip>
             </ButtonGroup>
@@ -188,56 +351,13 @@ function File(props: FileProps) {
   );
 }
 
-const tabTheme = createTheme({
-  components: {
-    MuiTabs: {
-      styleOverrides: {
-        root: {
-          height: "24px",
-          minHeight: "24px",
-        },
-      },
-    },
-    MuiTab: {
-      styleOverrides: {
-        root: {
-          height: "24px",
-          minHeight: "24px",
-          textTransform: "none",
-          fontFamily: [
-            "-apple-system",
-            "BlinkMacSystemFont",
-            '"Segoe UI"',
-            "Roboto",
-            '"Helvetica Neue"',
-            "Arial",
-            "sans-serif",
-            '"Apple Color Emoji"',
-            '"Segoe UI Emoji"',
-            '"Segoe UI Symbol"',
-          ].join(","),
-          "&.Mui-selected": {
-            backgroundColor: "white",
-          },
-        },
-      },
-    },
-    MuiIconButton: {
-      defaultProps: {
-        size: "small",
-      },
-      styleOverrides: {
-        sizeSmall: {
-          "& svg": {
-            fontSize: "1em",
-          },
-        },
-      },
-    },
-  },
-});
+interface EditorTabsProps {
+  handleError: (message: string, severity?: AlertColor) => void;
+}
 
-export default function EditorTabs() {
+export default function EditorTabs({
+  handleError,
+}: EditorTabsProps): React.ReactElement {
   const activeWorkspace = useAppSelector(selectActiveWorkspace);
   const initState = useAppSelector(selectWorkbenchInitState);
   const dispatch = useAppDispatch();
@@ -258,18 +378,19 @@ export default function EditorTabs() {
           workspace_id: activeWorkspace.id,
           active_file: newValue,
         }),
-      );
+      ).unwrap();
     }
   };
 
   return (
-    <ThemeProvider theme={tabTheme}>
+    <ThemeProvider theme={theme}>
       <Box sx={{ width: "100%" }}>
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs
             value={value}
             onChange={(event, newValue: string) => {
               handleChange(event, newValue).catch((error) => {
+                handleError(`${error}`, "error");
                 console.log(error);
               });
             }}
@@ -304,9 +425,12 @@ export default function EditorTabs() {
                                   workspace_id: activeWorkspace.id,
                                   file_id: fileId,
                                 }),
-                              ).catch((error) => {
-                                console.log(error);
-                              });
+                              )
+                                .unwrap()
+                                .catch((error) => {
+                                  handleError(`${error}`, "error");
+                                  console.log(error);
+                                });
                             }}
                           >
                             <CloseIcon />
@@ -327,6 +451,7 @@ export default function EditorTabs() {
                   fileId={fileId}
                   workspaceId={activeWorkspace.id}
                   key={fileId}
+                  handleError={handleError}
                 />
               );
             })
