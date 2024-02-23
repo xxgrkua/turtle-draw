@@ -19,7 +19,7 @@ import {
 } from "@mui/x-tree-view/TreeItem";
 import { TreeView } from "@mui/x-tree-view/TreeView";
 import clsx from "clsx";
-import React from "react";
+import React, { useEffect } from "react";
 
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
@@ -192,13 +192,17 @@ function SideBar(): React.ReactElement {
     activeWorkspaceId ? [activeWorkspaceId] : [],
   );
 
-  const [selected, setSelected] = React.useState<string>(
-    activeWorkspaceId
-      ? activeWorkspace?.activeFile
-        ? activeWorkspace.activeFile
-        : activeWorkspaceId
-      : "",
-  );
+  const [selected, setSelected] = React.useState<string>("");
+
+  useEffect(() => {
+    if (activeWorkspaceId) {
+      if (activeWorkspace?.activeFile) {
+        setSelected(activeWorkspace.activeFile);
+      } else {
+        setSelected(activeWorkspaceId);
+      }
+    }
+  }, [activeWorkspaceId, activeWorkspace?.activeFile]);
 
   const handleClick = async (workspace_id: string, file_id: string) => {
     await dispatch(
