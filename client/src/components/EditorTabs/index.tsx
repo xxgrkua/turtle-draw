@@ -22,7 +22,7 @@ import {
   Tooltip,
   createTheme,
 } from "@mui/material";
-import React from "react";
+import React, { useEffect } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
@@ -32,6 +32,7 @@ import {
   closeFile,
   createFile,
   createWorkspace,
+  initFile,
   selectActiveWorkspace,
   selectAllWorkspaces,
   selectWorkbenchInitState,
@@ -130,6 +131,12 @@ function File(props: FileProps) {
 
   const interpreter = getInterpreter();
 
+  useEffect(() => {
+    if (value === fileId) {
+      dispatch(initFile({ workspace_id: workspaceId, file_id: fileId }));
+    }
+  });
+
   const handleLineChange = (line: string) => {
     if (line.endsWith("\n")) {
       const result = interpreter(line);
@@ -222,10 +229,8 @@ function File(props: FileProps) {
   return (
     <div role="tabpanel" hidden={value !== fileId}>
       {value === fileId && (
-        <Grid container>
-          <Grid
-            item
-            xs={12}
+        <React.Fragment>
+          <Box
             sx={{
               borderBottom: "1px solid rgba(0, 0, 0, 0.12)",
             }}
@@ -356,89 +361,98 @@ function File(props: FileProps) {
                 </IconButton>
               </Tooltip>
             </ButtonGroup>
-          </Grid>
-          <Grid item xs={6} sx={{ borderRight: "1px solid rgb(0,0,0,0.12)" }}>
-            <Grid container direction={"column"}>
-              <Grid item xs={12}>
-                <Paper className="editor">
-                  <AceEditor
-                    value={code}
-                    mode="scheme"
-                    height="100%"
-                    width="100%"
-                    tabSize={2}
-                    onChange={setCode}
-                    onLoad={(editor) => {
-                      editor.focus();
-                    }}
-                    enableBasicAutocompletion={false}
-                    enableLiveAutocompletion={false}
-                    enableSnippets={false}
-                    setOptions={{
-                      showLineNumbers: true,
-                    }}
-                    fontSize={14}
-                  />
-                </Paper>
-              </Grid>
-              <Grid item xs={12}>
-                <Tabs
-                  value={0}
-                  variant="fullWidth"
-                  sx={{
-                    borderTop: "1px solid rgb(0,0,0,0.12)",
-                    borderBottom: "1px solid rgb(0,0,0,0.12)",
-                  }}
-                  TabIndicatorProps={{
-                    sx: { display: "none" },
-                  }}
-                >
-                  <Tab label="Terminal" />
-                </Tabs>
-                <Paper className="terminal">
-                  <div className="history">
-                    {history.map((line, index) => (
-                      <div key={index}>{line}</div>
-                    ))}
-                  </div>
-                  <AceEditor
-                    value={line}
-                    mode="scheme"
-                    height="100%"
-                    width="100%"
-                    tabSize={2}
-                    onChange={handleLineChange}
-                    onLoad={(editor) => {
-                      editor.session.gutterRenderer = {
-                        getWidth: function (session, lastLineNumber, config) {
-                          return 3 * config.characterWidth;
-                        },
-                        getText: function (session, row) {
-                          return "scm> ";
-                        },
-                      };
-                    }}
-                    enableBasicAutocompletion={false}
-                    enableLiveAutocompletion={false}
-                    enableSnippets={false}
-                    setOptions={{
-                      showLineNumbers: false,
-                    }}
-                    fontSize={14}
-                    minLines={1}
-                  />
-                </Paper>
+          </Box>
+          <Grid container>
+            <Grid item xs={6} sx={{ borderRight: "1px solid rgb(0,0,0,0.12)" }}>
+              <Grid container direction={"column"}>
+                <Grid item xs={12}>
+                  <Paper className="editor" elevation={0}>
+                    <AceEditor
+                      value={code}
+                      mode="scheme"
+                      height="100%"
+                      width="100%"
+                      tabSize={2}
+                      onChange={setCode}
+                      onLoad={(editor) => {
+                        editor.focus();
+                      }}
+                      enableBasicAutocompletion={false}
+                      enableLiveAutocompletion={false}
+                      enableSnippets={false}
+                      setOptions={{
+                        showLineNumbers: true,
+                      }}
+                      fontSize={14}
+                    />
+                  </Paper>
+                </Grid>
+                <Grid item xs={12}>
+                  <Box className="terminal">
+                    <Tabs
+                      value={0}
+                      variant="fullWidth"
+                      sx={{
+                        borderTop: "1px solid rgb(0,0,0,0.12)",
+                        borderBottom: "1px solid rgb(0,0,0,0.12)",
+                      }}
+                      TabIndicatorProps={{
+                        sx: { display: "none" },
+                      }}
+                    >
+                      <Tab label="Terminal" />
+                    </Tabs>
+                    <Paper
+                      elevation={0}
+                      sx={{ height: "371px", overflow: "auto" }}
+                    >
+                      <div className="history">
+                        {history.map((line, index) => (
+                          <div key={index}>{line}</div>
+                        ))}
+                      </div>
+                      <AceEditor
+                        value={line}
+                        mode="scheme"
+                        width="100%"
+                        tabSize={2}
+                        onChange={handleLineChange}
+                        onLoad={(editor) => {
+                          editor.session.gutterRenderer = {
+                            getWidth: function (
+                              session,
+                              lastLineNumber,
+                              config,
+                            ) {
+                              return 3 * config.characterWidth;
+                            },
+                            getText: function (session, row) {
+                              return "scm> ";
+                            },
+                          };
+                        }}
+                        enableBasicAutocompletion={false}
+                        enableLiveAutocompletion={false}
+                        enableSnippets={false}
+                        setOptions={{
+                          showLineNumbers: false,
+                        }}
+                        fontSize={14}
+                        minLines={1}
+                        maxLines={1}
+                      />
+                    </Paper>
+                  </Box>
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
-          <Grid item xs={6}>
-            <Grid container direction={"column"}>
-              <Grid item xs={12}>
-                <Paper className="canvas">canvas</Paper>
-              </Grid>
+            <Grid item xs={6}>
+              <Paper elevation={0} sx={{ height: "100%" }}>
+                canvas
+              </Paper>
             </Grid>
           </Grid>
-        </Grid>
+        </React.Fragment>
       )}
     </div>
   );

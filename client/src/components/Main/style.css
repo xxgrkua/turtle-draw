@@ -1,7 +1,3 @@
 .side-bar {
   height: calc(100vh - 69px);
 }
-
-.canvas {
-  height: calc(100vh - 69px);
-}

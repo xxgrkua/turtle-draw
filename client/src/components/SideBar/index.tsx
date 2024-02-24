@@ -4,6 +4,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
 import {
   AlertColor,
+  Box,
   Button,
   ButtonGroup,
   Dialog,
@@ -120,17 +121,14 @@ const CustomContent = React.forwardRef(function CustomContent(
   const icon = iconProp || expansionIcon || displayIcon;
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
-    console.log("handle mouse down");
     preventSelection(event);
   };
 
   const handleExpansionClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    console.log("handle expansion");
     handleExpansion(event);
   };
 
   const handleSelectionClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    console.log("handle selection");
     handleSelection(event);
     onClick?.(event);
   };
@@ -146,6 +144,7 @@ const CustomContent = React.forwardRef(function CustomContent(
       onMouseDown={handleMouseDown}
       ref={ref as React.Ref<HTMLDivElement>}
     >
+      {/* ref: https://stackoverflow.com/a/5836525 */}
       <div
         className="MuiTreeItem-contentBar"
         style={{ pointerEvents: "none" }}
@@ -317,144 +316,162 @@ export default function SideBar({
   };
 
   return (
-    <React.Fragment>
-      <ThemeProvider theme={theme}>
-        <ButtonGroup variant="text" size="small" sx={{ padding: "12px" }}>
-          <Button
-            startIcon={<InsertDriveFile />}
-            onClick={() => {
-              setNewFileName(getCurrentDefaultFileName());
-              handleNewFileDialogOpen();
-            }}
-            disabled={!activeWorkspaceId}
-            color="inherit"
-          >
-            New File
-          </Button>
-          <Dialog
-            open={newFileDialogOpen}
-            onClose={handleNewFileDialogClose}
-            PaperProps={{
-              component: "form",
-              onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-                event.preventDefault();
-                handleNewFile(newFileName);
-                handleNewFileDialogClose();
-              },
-            }}
-          >
-            <DialogTitle>New File</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                required
-                margin="dense"
-                label="File Name"
-                variant="standard"
-                value={newFileName}
-                fullWidth
-                onChange={(event) => {
-                  setNewFileName(event.target.value);
-                }}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleNewFileDialogClose}>Cancel</Button>
-              <Button type="submit">Create</Button>
-            </DialogActions>
-          </Dialog>
-          <Button
-            startIcon={<CreateNewFolder />}
-            onClick={() => {
-              setWorkspaceName(getCurrentDefaultWorkspaceName());
-              handleNewWorkspaceDialogOpen();
-            }}
-            color="inherit"
-          >
-            New Workspace
-          </Button>
-          <Dialog
-            open={newWorkspaceDialogOpen}
-            onClose={handleNewWorkspaceDialogClose}
-            PaperProps={{
-              component: "form",
-              onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-                event.preventDefault();
-                handleNewWorkspace(workspaceName);
-                handleNewWorkspaceDialogClose();
-              },
-            }}
-          >
-            <DialogTitle>New Workspace</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                required
-                margin="dense"
-                label="Workspace Name"
-                variant="standard"
-                value={workspaceName}
-                fullWidth
-                onChange={(event) => {
-                  setWorkspaceName(event.target.value);
-                }}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleNewWorkspaceDialogClose}>Cancel</Button>
-              <Button type="submit">Create</Button>
-            </DialogActions>
-          </Dialog>
-        </ButtonGroup>
-      </ThemeProvider>
-      <TreeView
-        defaultCollapseIcon={<ExpandMoreIcon />}
-        defaultExpandIcon={<ChevronRightIcon />}
-        expanded={expanded}
-        selected={selected}
-        onNodeToggle={(event, nodes) => {
-          setExpanded(nodes);
-        }}
-        onNodeSelect={(event, nodeId) => {
-          setSelected(nodeId);
-        }}
-        sx={{ position: "relative" }}
-      >
-        {initState === "succeeded"
-          ? workspaces.map((workspace) => {
-              return (
-                <CustomTreeItem
-                  nodeId={workspace.id}
-                  key={workspace.id}
-                  label={workspace.name}
-                  onClick={() => {
-                    console.log("clicked");
-                    handleWorkspaceClick(workspace.id).catch((error) => {
-                      handleError(`${error}`, "error");
-                      console.log(error);
-                    });
+    <div
+      style={{
+        height: "100%",
+        display: "flex",
+        flexFlow: "column",
+      }}
+    >
+      <div style={{ flex: "0", height: "100%" }}>
+        <ThemeProvider theme={theme}>
+          <ButtonGroup variant="text" size="small" sx={{ padding: "12px" }}>
+            <Button
+              startIcon={<InsertDriveFile />}
+              onClick={() => {
+                setNewFileName(getCurrentDefaultFileName());
+                handleNewFileDialogOpen();
+              }}
+              disabled={!activeWorkspaceId}
+              color="inherit"
+            >
+              New File
+            </Button>
+            <Dialog
+              open={newFileDialogOpen}
+              onClose={handleNewFileDialogClose}
+              fullWidth
+              PaperProps={{
+                component: "form",
+                onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                  event.preventDefault();
+                  handleNewFile(newFileName);
+                  handleNewFileDialogClose();
+                },
+              }}
+            >
+              <DialogTitle>New File</DialogTitle>
+              <DialogContent>
+                <TextField
+                  autoFocus
+                  required
+                  margin="dense"
+                  label="File Name"
+                  variant="standard"
+                  value={newFileName}
+                  fullWidth
+                  onChange={(event) => {
+                    setNewFileName(event.target.value);
                   }}
-                >
-                  {workspace.fileRefs.map(({ id, name }) => {
-                    return (
-                      <CustomTreeItem
-                        nodeId={id}
-                        key={id}
-                        label={name}
-                        onClick={() => {
-                          handleFileClick(workspace.id, id).catch((error) => {
-                            handleError(`${error}`, "error");
-                            console.log(error);
-                          });
-                        }}
-                      />
-                    );
-                  })}
-                </CustomTreeItem>
-              );
-            })
-          : null}
-      </TreeView>
-    </React.Fragment>
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleNewFileDialogClose}>Cancel</Button>
+                <Button type="submit">Create</Button>
+              </DialogActions>
+            </Dialog>
+            <Button
+              startIcon={<CreateNewFolder />}
+              onClick={() => {
+                setWorkspaceName(getCurrentDefaultWorkspaceName());
+                handleNewWorkspaceDialogOpen();
+              }}
+              color="inherit"
+            >
+              New Workspace
+            </Button>
+            <Dialog
+              open={newWorkspaceDialogOpen}
+              onClose={handleNewWorkspaceDialogClose}
+              fullWidth
+              PaperProps={{
+                component: "form",
+                onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                  event.preventDefault();
+                  handleNewWorkspace(workspaceName);
+                  handleNewWorkspaceDialogClose();
+                },
+              }}
+            >
+              <DialogTitle>New Workspace</DialogTitle>
+              <DialogContent>
+                <TextField
+                  autoFocus
+                  required
+                  margin="dense"
+                  label="Workspace Name"
+                  variant="standard"
+                  value={workspaceName}
+                  fullWidth
+                  onChange={(event) => {
+                    setWorkspaceName(event.target.value);
+                  }}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleNewWorkspaceDialogClose}>Cancel</Button>
+                <Button type="submit">Create</Button>
+              </DialogActions>
+            </Dialog>
+          </ButtonGroup>
+        </ThemeProvider>
+      </div>
+      <div style={{ flex: "auto", height: "100%" }}>
+        <Box sx={{ height: "100%" }}>
+          <TreeView
+            defaultCollapseIcon={<ExpandMoreIcon />}
+            defaultExpandIcon={<ChevronRightIcon />}
+            expanded={expanded}
+            selected={selected}
+            onNodeToggle={(event, nodes) => {
+              setExpanded(nodes);
+            }}
+            onNodeSelect={(event, nodeId) => {
+              setSelected(nodeId);
+            }}
+            sx={{
+              position: "relative",
+              overflow: "auto",
+            }}
+          >
+            {initState === "succeeded"
+              ? workspaces.map((workspace) => {
+                  return (
+                    <CustomTreeItem
+                      nodeId={workspace.id}
+                      key={workspace.id}
+                      label={workspace.name}
+                      onClick={() => {
+                        handleWorkspaceClick(workspace.id).catch((error) => {
+                          handleError(`${error}`, "error");
+                          console.log(error);
+                        });
+                      }}
+                    >
+                      {workspace.fileRefs.map(({ id, name }) => {
+                        return (
+                          <CustomTreeItem
+                            nodeId={id}
+                            key={id}
+                            label={name}
+                            onClick={() => {
+                              handleFileClick(workspace.id, id).catch(
+                                (error) => {
+                                  handleError(`${error}`, "error");
+                                  console.log(error);
+                                },
+                              );
+                            }}
+                          />
+                        );
+                      })}
+                    </CustomTreeItem>
+                  );
+                })
+              : null}
+          </TreeView>
+        </Box>
+      </div>
+    </div>
   );
 }

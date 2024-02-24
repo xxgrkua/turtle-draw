@@ -64,45 +64,45 @@ const Main: React.FC = function () {
   });
 
   return (
-    <Grid container>
-      <Grid item xs={12}>
-        <TopBar />
-      </Grid>
-      <Grid item xs={2}>
-        <ThemeProvider theme={theme}>
-          <Paper elevation={0} square className="side-bar">
-            <SideBar handleError={handleError} />
+    <React.Fragment>
+      <TopBar />
+      <Grid container alignItems="stretch">
+        <Grid item xs={2} className="side-bar">
+          <ThemeProvider theme={theme}>
+            <Paper elevation={0} square sx={{ height: "100%" }}>
+              <SideBar handleError={handleError} />
+            </Paper>
+          </ThemeProvider>
+        </Grid>
+        <Grid item xs={10}>
+          <Paper elevation={0} square sx={{ height: "100%" }}>
+            <EditorTabs handleError={handleError} />
           </Paper>
-        </ThemeProvider>
-      </Grid>
-      <Grid item xs={10}>
-        <Paper elevation={0} square className="editor-tabs">
-          <EditorTabs handleError={handleError} />
-        </Paper>
-      </Grid>
-      <Snackbar
-        open={open}
-        autoHideDuration={6000}
-        onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        key={key}
-      >
-        <Alert
+        </Grid>
+        <Snackbar
+          open={open}
+          autoHideDuration={6000}
           onClose={handleClose}
-          sx={{ width: "100%" }}
-          severity={severity}
-          iconMapping={{
-            error: <CloseIcon />,
-            success: <CheckIcon />,
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
           }}
+          key={key}
         >
-          {message}
-        </Alert>
-      </Snackbar>
-    </Grid>
+          <Alert
+            onClose={handleClose}
+            sx={{ width: "100%" }}
+            severity={severity}
+            iconMapping={{
+              error: <CloseIcon />,
+              success: <CheckIcon />,
+            }}
+          >
+            {message}
+          </Alert>
+        </Snackbar>
+      </Grid>
+    </React.Fragment>
   );
 };
 

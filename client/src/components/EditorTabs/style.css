@@ -1,6 +1,6 @@
 .editor,
 .terminal {
-  height: calc((100vh - 130px) / 2);
+  height: calc((100vh - 124px) / 2);
 }
 
 .history {
