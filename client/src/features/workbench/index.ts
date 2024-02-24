@@ -11,6 +11,13 @@ interface FileRef {
   id: string;
   name: string;
 }
+interface FileRefState {
+  id: string;
+  name: string;
+  state: "idle" | "loading" | "succeeded" | "failed";
+  error: string | null;
+  saved: boolean;
+}
 
 interface WorkspaceResponse {
   id: string;
@@ -62,15 +69,13 @@ interface FileState {
   content: string;
   terminal: TerminalState;
   graphic: GraphicsState;
-  saved: boolean;
-  state: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
 }
 
 interface WorkspaceState {
   id: string;
   name: string;
-  fileRefs: FileRef[];
+  fileIds: string[];
+  fileRefs: { [id: string]: FileRefState };
   files: { [id: string]: FileState };
   openedFiles: string[];
   activeFile: string | null;
@@ -97,7 +102,16 @@ const initialState: WorkbenchState = {
     [initialWorkspaceId]: {
       id: initialWorkspaceId,
       name: initialWorkspaceName,
-      fileRefs: [{ id: initialFileId, name: initialFileName }],
+      fileIds: [initialFileId],
+      fileRefs: {
+        [initialFileId]: {
+          id: initialFileId,
+          name: initialFileName,
+          state: "idle",
+          error: null,
+          saved: true,
+        },
+      },
       files: {
         [initialFileId]: {
           id: initialFileId,
@@ -110,9 +124,6 @@ const initialState: WorkbenchState = {
           graphic: {
             content: "",
           },
-          saved: true,
-          state: "idle",
-          error: null,
         },
       },
       openedFiles: [initialFileId],
@@ -167,7 +178,19 @@ export const workbenchSlice = createAppSlice({
               state.workspaces[workspace.id] = {
                 id: workspace.id,
                 name: workspace.name,
-                fileRefs: workspace.files,
+                fileIds: workspace.files.map((file) => file.id),
+                fileRefs: workspace.files.reduce(
+                  (current: { [key: string]: FileRefState }, file) => {
+                    current[file.id] = {
+                      ...file,
+                      state: "idle",
+                      error: null,
+                      saved: true,
+                    };
+                    return current;
+                  },
+                  {},
+                ),
                 files: {},
                 openedFiles: workspace.opened_files,
                 activeFile: workspace.active_file,
@@ -228,7 +251,19 @@ export const workbenchSlice = createAppSlice({
           state.workspaces[action.payload.id] = {
             id: action.payload.id,
             name: action.payload.name,
-            fileRefs: action.payload.files,
+            fileIds: action.payload.files.map((file) => file.id),
+            fileRefs: action.payload.files.reduce(
+              (current: { [key: string]: FileRefState }, file) => {
+                current[file.id] = {
+                  ...file,
+                  state: "idle",
+                  error: null,
+                  saved: true,
+                };
+                return current;
+              },
+              {},
+            ),
             files: {},
             openedFiles: action.payload.opened_files,
             activeFile: action.payload.active_file,
@@ -396,7 +431,7 @@ export const workbenchSlice = createAppSlice({
         if (userInfo) {
           try {
             const { data } = await axios.get<FileResponse>(
-              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/files/${payload.file_id}`,
+              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/file/${payload.file_id}`,
             );
             return data;
           } catch (error) {
@@ -412,30 +447,38 @@ export const workbenchSlice = createAppSlice({
       },
       {
         pending: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "loading";
         },
 
         fulfilled: (state, action) => {
           if (action.payload) {
-            state.workspaces[action.meta.arg.workspace_id].files[
+            state.workspaces[action.meta.arg.workspace_id].fileRefs[
               action.meta.arg.file_id
             ].state = "succeeded";
             state.workspaces[action.meta.arg.workspace_id].files[
               action.meta.arg.file_id
-            ].content = action.payload.content;
-            state.workspaces[action.meta.arg.workspace_id].files[
-              action.meta.arg.file_id
-            ].graphic.content = action.payload.graphic;
+            ] = {
+              id: action.payload.id,
+              name: action.payload.name,
+              content: action.payload.content,
+              terminal: {
+                history: [],
+                current: "",
+              },
+              graphic: {
+                content: action.payload.graphic,
+              },
+            };
           }
         },
 
         rejected: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "failed";
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].error = action.payload as string;
         },
@@ -469,11 +512,11 @@ export const workbenchSlice = createAppSlice({
           if (!payload.name) {
             return thunkAPI.rejectWithValue("File name is required");
           } else if (
-            state.workbench.workspaces[payload.workspace_id].fileRefs.find(
-              ({ name }) => {
-                return name === payload.name;
-              },
-            )
+            Object.entries(
+              state.workbench.workspaces[payload.workspace_id].fileRefs,
+            ).find(([, { name }]) => {
+              return name === payload.name;
+            })
           ) {
             return thunkAPI.rejectWithValue(
               "File with the same name already exists",
@@ -495,11 +538,18 @@ export const workbenchSlice = createAppSlice({
 
         fulfilled: (state, action) => {
           if ("workspace_id" in action.payload) {
-            state.workspaces[action.payload.workspace_id].state = "succeeded";
-            state.workspaces[action.payload.workspace_id].fileRefs.push({
+            state.workspaces[action.payload.workspace_id].fileIds.push(
+              action.payload.id,
+            );
+            state.workspaces[action.payload.workspace_id].fileRefs[
+              action.payload.id
+            ] = {
               id: action.payload.id,
               name: action.payload.name,
-            });
+              state: "succeeded",
+              error: null,
+              saved: true,
+            };
             state.workspaces[action.payload.workspace_id].files[
               action.payload.id
             ] = {
@@ -513,9 +563,6 @@ export const workbenchSlice = createAppSlice({
               graphic: {
                 content: action.payload.graphic,
               },
-              saved: true,
-              state: "idle",
-              error: null,
             };
             state.workspaces[action.payload.workspace_id].openedFiles.push(
               action.payload.id,
@@ -524,10 +571,18 @@ export const workbenchSlice = createAppSlice({
               action.payload.id;
           } else {
             state.workspaces[action.meta.arg.workspace_id].state = "succeeded";
-            state.workspaces[action.meta.arg.workspace_id].fileRefs.push({
+            state.workspaces[action.meta.arg.workspace_id].fileIds.push(
+              action.payload.id,
+            );
+            state.workspaces[action.meta.arg.workspace_id].fileRefs[
+              action.payload.id
+            ] = {
               id: action.payload.id,
               name: action.payload.name,
-            });
+              state: "succeeded",
+              error: null,
+              saved: true,
+            };
             state.workspaces[action.meta.arg.workspace_id].files[
               action.payload.id
             ] = {
@@ -541,9 +596,6 @@ export const workbenchSlice = createAppSlice({
               graphic: {
                 content: action.payload.graphic,
               },
-              saved: true,
-              state: "idle",
-              error: null,
             };
             state.workspaces[action.meta.arg.workspace_id].openedFiles.push(
               action.payload.id,
@@ -573,7 +625,7 @@ export const workbenchSlice = createAppSlice({
         if (userInfo) {
           try {
             const { data } = await axios.delete<{ active_file: string | null }>(
-              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/files/${payload.file_id}`,
+              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/file/${payload.file_id}`,
             );
             return {
               active_file: data.active_file,
@@ -594,13 +646,13 @@ export const workbenchSlice = createAppSlice({
       },
       {
         pending: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "loading";
         },
 
         fulfilled: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.payload.deleted_file
           ].state = "succeeded";
           if (action.payload.active_file !== undefined) {
@@ -636,10 +688,16 @@ export const workbenchSlice = createAppSlice({
               }
             }
           }
-          state.workspaces[action.meta.arg.workspace_id].fileRefs =
-            state.workspaces[action.meta.arg.workspace_id].fileRefs.filter(
-              ({ id }) => id !== action.payload.deleted_file,
-            );
+          state.workspaces[action.meta.arg.workspace_id].fileIds.splice(
+            state.workspaces[action.meta.arg.workspace_id].fileIds.indexOf(
+              action.payload.deleted_file,
+            ),
+            1,
+          );
+          delete state.workspaces[action.meta.arg.workspace_id].fileRefs[
+            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+            action.payload.deleted_file
+          ];
           delete state.workspaces[action.meta.arg.workspace_id].files[
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             action.payload.deleted_file
@@ -649,10 +707,10 @@ export const workbenchSlice = createAppSlice({
         },
 
         rejected: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "failed";
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].error = action.payload as string;
         },
@@ -676,7 +734,7 @@ export const workbenchSlice = createAppSlice({
         if (userInfo) {
           try {
             const { data } = await axios.put<FileResponse>(
-              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/files/${payload.file_id}`,
+              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/file/${payload.file_id}`,
               {
                 name: payload.name,
                 content: payload.content,
@@ -702,20 +760,27 @@ export const workbenchSlice = createAppSlice({
       },
       {
         pending: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "loading";
         },
 
         fulfilled: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.payload.id
           ].state = "succeeded";
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
+            action.payload.id
+          ].name =
+            action.payload.name ??
+            state.workspaces[action.meta.arg.workspace_id].fileRefs[
+              action.payload.id
+            ].name;
           state.workspaces[action.meta.arg.workspace_id].files[
             action.payload.id
           ].name =
             action.payload.name ??
-            state.workspaces[action.meta.arg.workspace_id].files[
+            state.workspaces[action.meta.arg.workspace_id].fileRefs[
               action.payload.id
             ].name;
           state.workspaces[action.meta.arg.workspace_id].files[
@@ -735,10 +800,10 @@ export const workbenchSlice = createAppSlice({
         },
 
         rejected: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "failed";
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].error = action.payload as string;
         },
@@ -763,7 +828,7 @@ export const workbenchSlice = createAppSlice({
               active_file: string | null;
               opened_files: string[];
             }>(
-              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/files/${payload.file_id}/close`,
+              `/api/user/${userInfo.username}/workspaces/${payload.workspace_id}/file/${payload.file_id}/close`,
             );
             return {
               active_file: data.active_file,
@@ -785,7 +850,7 @@ export const workbenchSlice = createAppSlice({
       },
       {
         pending: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "loading";
         },
@@ -838,13 +903,35 @@ export const workbenchSlice = createAppSlice({
         },
 
         rejected: (state, action) => {
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].state = "failed";
-          state.workspaces[action.meta.arg.workspace_id].files[
+          state.workspaces[action.meta.arg.workspace_id].fileRefs[
             action.meta.arg.file_id
           ].error = action.payload as string;
         },
+      },
+    ),
+
+    saveFile: create.reducer(
+      (
+        state,
+        action: { payload: { workspace_id: string; file_id: string } },
+      ) => {
+        state.workspaces[action.payload.workspace_id].fileRefs[
+          action.payload.file_id
+        ].saved = true;
+      },
+    ),
+
+    unsavedFile: create.reducer(
+      (
+        state,
+        action: { payload: { workspace_id: string; file_id: string } },
+      ) => {
+        state.workspaces[action.payload.workspace_id].fileRefs[
+          action.payload.file_id
+        ].saved = false;
       },
     ),
   }),
@@ -862,7 +949,11 @@ export const workbenchSlice = createAppSlice({
     selectWorkbenchState: (state) => state.initState,
     selectFileById: (state, workspace_id: string, file_id: string) => {
       const workspace = state.workspaces[workspace_id];
-      return workspace.files[file_id];
+      if (file_id in workspace.files) {
+        return workspace.files[file_id];
+      } else {
+        return null;
+      }
     },
     selectActiveWorkspace: (state) => {
       if (state.activeWorkspace) {
@@ -878,10 +969,14 @@ export const workbenchSlice = createAppSlice({
     selectActiveWorkspaceId: (state) => state.activeWorkspace,
     selectOpenedFileRefs: (state, workspace_id: string) => {
       return state.workspaces[workspace_id].openedFiles.map((id) => {
-        return state.workspaces[workspace_id].fileRefs.find(
-          (file) => file.id === id,
-        );
+        return state.workspaces[workspace_id].fileRefs[id];
       });
+    },
+    selectFileState: (state, workspace_id: string, file_id: string) => {
+      return state.workspaces[workspace_id].fileRefs[file_id].state;
+    },
+    selectFileSaveState: (state, workspace_id: string, file_id: string) => {
+      return state.workspaces[workspace_id].fileRefs[file_id].saved;
     },
   },
 });
@@ -897,6 +992,9 @@ export const {
   selectInterpreterById,
   selectWorkbenchInitState,
   selectActiveWorkspaceId,
+  selectOpenedFileRefs,
+  selectFileState,
+  selectFileSaveState,
 } = workbenchSlice.selectors;
 
 export const {
@@ -909,4 +1007,6 @@ export const {
   deleteFile,
   updateFile,
   closeFile,
+  saveFile,
+  unsavedFile,
 } = workbenchSlice.actions;

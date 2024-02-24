@@ -33,10 +33,16 @@ import {
   createFile,
   createWorkspace,
   initFile,
+  saveFile,
   selectActiveWorkspace,
   selectAllWorkspaces,
+  selectFileById,
+  selectFileSaveState,
+  selectFileState,
   selectWorkbenchInitState,
   selectWorkspaceById,
+  unsavedFile,
+  updateFile,
   updateWorkspace,
 } from "../../features/workbench";
 import "./style.css";
@@ -112,10 +118,20 @@ interface FileProps {
 
 function File(props: FileProps) {
   const { value, fileId, workspaceId, handleError } = props;
+  const editorRef = React.useRef<AceEditor | null>(null);
   const workspace = useAppSelector((state) => {
     return selectWorkspaceById(state, workspaceId);
   });
   const workspaces = useAppSelector(selectAllWorkspaces);
+  const fileState = useAppSelector((state) =>
+    selectFileState(state, workspaceId, fileId),
+  );
+  const fileSaved = useAppSelector((state) =>
+    selectFileSaveState(state, workspaceId, fileId),
+  );
+  const file = useAppSelector((state) =>
+    selectFileById(state, workspaceId, fileId),
+  );
 
   const dispatch = useAppDispatch();
 
@@ -132,10 +148,24 @@ function File(props: FileProps) {
   const interpreter = getInterpreter();
 
   useEffect(() => {
-    if (value === fileId) {
-      dispatch(initFile({ workspace_id: workspaceId, file_id: fileId }));
+    if (value === fileId && fileState === "idle") {
+      dispatch(initFile({ workspace_id: workspaceId, file_id: fileId }))
+        .unwrap()
+        .catch((error) => {
+          handleError(`${error}`, "error");
+          console.log(error);
+        });
     }
-  });
+  }, [dispatch, fileId, fileState, value, workspaceId, handleError]);
+
+  useEffect(() => {
+    if (file) {
+      setCode(file.content);
+      // const row = (editorRef.current?.editor.session.getLength() || 1) - 1;
+      // const column = editorRef.current?.editor.session.getLine(row).length || 0;
+      // editorRef.current?.editor.moveCursorTo(row, column);
+    }
+  }, [file]);
 
   const handleLineChange = (line: string) => {
     if (line.endsWith("\n")) {
@@ -149,7 +179,9 @@ function File(props: FileProps) {
   };
 
   const getCurrentDefaultFileName = () => {
-    const filenameSet = new Set(workspace.fileRefs.map(({ name }) => name));
+    const filenameSet = new Set(
+      Object.entries(workspace.fileRefs).map(([, { name }]) => name),
+    );
     let index = 0;
     while (true) {
       if (index === 0) {
@@ -224,6 +256,28 @@ function File(props: FileProps) {
 
   const handleNewWorkspacePopoverClose = () => {
     setNewWorkspaceAnchorEl(null);
+  };
+
+  const handleSave = () => {
+    let finalCode = code;
+    if (!finalCode.endsWith("\n")) {
+      finalCode += "\n";
+    }
+    dispatch(
+      updateFile({
+        workspace_id: workspaceId,
+        file_id: fileId,
+        content: finalCode,
+      }),
+    )
+      .unwrap()
+      .then(() =>
+        dispatch(saveFile({ workspace_id: workspaceId, file_id: fileId })),
+      )
+      .catch((error) => {
+        handleError(`${error}`, "error");
+        console.log(error);
+      });
   };
 
   return (
@@ -341,9 +395,11 @@ function File(props: FileProps) {
                 </Stack>
               </Popover>
               <Tooltip title="Save">
-                <IconButton>
-                  <SaveIcon />
-                </IconButton>
+                <span>
+                  <IconButton disabled={fileSaved} onClick={handleSave}>
+                    <SaveIcon />
+                  </IconButton>
+                </span>
               </Tooltip>
               <Tooltip title="Run">
                 <IconButton>
@@ -368,12 +424,21 @@ function File(props: FileProps) {
                 <Grid item xs={12}>
                   <Paper className="editor" elevation={0}>
                     <AceEditor
+                      ref={editorRef}
                       value={code}
                       mode="scheme"
                       height="100%"
                       width="100%"
                       tabSize={2}
-                      onChange={setCode}
+                      onChange={(content) => {
+                        setCode(content);
+                        dispatch(
+                          unsavedFile({
+                            workspace_id: workspaceId,
+                            file_id: fileId,
+                          }),
+                        );
+                      }}
                       onLoad={(editor) => {
                         editor.focus();
                       }}
@@ -509,44 +574,41 @@ export default function EditorTabs({
             }}
           >
             {initState === "succeeded" && activeWorkspace
-              ? activeWorkspace.fileRefs
-                  .filter(({ id: fileId }) =>
-                    activeWorkspace.openedFiles.includes(fileId),
-                  )
-                  .map(({ id: fileId, name: filename }) => {
-                    return (
-                      <Tab
-                        component="div"
-                        label={filename}
-                        key={fileId}
-                        value={fileId}
-                        disableRipple
-                        sx={{ backgroundColor: "rgb(236,236,236)" }}
-                        icon={
-                          <IconButton
-                            size="small"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              dispatch(
-                                closeFile({
-                                  workspace_id: activeWorkspace.id,
-                                  file_id: fileId,
-                                }),
-                              )
-                                .unwrap()
-                                .catch((error) => {
-                                  handleError(`${error}`, "error");
-                                  console.log(error);
-                                });
-                            }}
-                          >
-                            <CloseIcon />
-                          </IconButton>
-                        }
-                        iconPosition="end"
-                      />
-                    );
-                  })
+              ? activeWorkspace.openedFiles.map((fileId) => {
+                  const filename = activeWorkspace.fileRefs[fileId].name;
+                  return (
+                    <Tab
+                      component="div"
+                      label={filename}
+                      key={fileId}
+                      value={fileId}
+                      disableRipple
+                      sx={{ backgroundColor: "rgb(236,236,236)" }}
+                      icon={
+                        <IconButton
+                          size="small"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            dispatch(
+                              closeFile({
+                                workspace_id: activeWorkspace.id,
+                                file_id: fileId,
+                              }),
+                            )
+                              .unwrap()
+                              .catch((error) => {
+                                handleError(`${error}`, "error");
+                                console.log(error);
+                              });
+                          }}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      }
+                      iconPosition="end"
+                    />
+                  );
+                })
               : null}
           </Tabs>
         </Box>

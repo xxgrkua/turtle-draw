@@ -213,7 +213,9 @@ export default function SideBar({
 
   const getCurrentDefaultFileName = () => {
     const filenameSet = new Set(
-      activeWorkspace?.fileRefs.map(({ name }) => name),
+      Object.entries(activeWorkspace ? activeWorkspace.fileRefs : {}).map(
+        ([, { name }]) => name,
+      ),
     );
     let index = 0;
     while (true) {
@@ -448,23 +450,25 @@ export default function SideBar({
                         });
                       }}
                     >
-                      {workspace.fileRefs.map(({ id, name }) => {
-                        return (
-                          <CustomTreeItem
-                            nodeId={id}
-                            key={id}
-                            label={name}
-                            onClick={() => {
-                              handleFileClick(workspace.id, id).catch(
-                                (error) => {
-                                  handleError(`${error}`, "error");
-                                  console.log(error);
-                                },
-                              );
-                            }}
-                          />
-                        );
-                      })}
+                      {Object.entries(workspace.fileRefs).map(
+                        ([, { id, name }]) => {
+                          return (
+                            <CustomTreeItem
+                              nodeId={id}
+                              key={id}
+                              label={name}
+                              onClick={() => {
+                                handleFileClick(workspace.id, id).catch(
+                                  (error) => {
+                                    handleError(`${error}`, "error");
+                                    console.log(error);
+                                  },
+                                );
+                              }}
+                            />
+                          );
+                        },
+                      )}
                     </CustomTreeItem>
                   );
                 })
