@@ -207,21 +207,23 @@ export const workbenchSlice = createAppSlice({
             }
           }
         } else {
-          return thunkAPI.fulfillWithValue({
-            id: nanoid(),
-            name: payload.name,
-            files: [],
-            opened_files: [],
-            active_file: null,
-          });
+          if (!payload.name) {
+            return thunkAPI.rejectWithValue("Workspace name is required");
+          } else {
+            return thunkAPI.fulfillWithValue({
+              id: nanoid(),
+              name: payload.name,
+              files: [],
+              opened_files: [],
+              active_file: null,
+            });
+          }
         }
       },
       {
-        pending: (state) => {
-          state.initState = "loading";
-        },
+        pending: () => {},
+
         fulfilled: (state, action) => {
-          state.initState = "succeeded";
           state.workspaceIds.push(action.payload.id);
           state.workspaces[action.payload.id] = {
             id: action.payload.id,
@@ -237,7 +239,6 @@ export const workbenchSlice = createAppSlice({
             state.workspaceIds[state.workspaceIds.length - 1];
         },
         rejected: (state, action) => {
-          state.initState = "failed";
           state.error = action.payload as string;
         },
       },
@@ -276,12 +277,9 @@ export const workbenchSlice = createAppSlice({
         }
       },
       {
-        pending: (state) => {
-          state.initState = "loading";
-        },
+        pending: () => {},
 
         fulfilled: (state, action) => {
-          state.initState = "succeeded";
           if (action.payload.active_workspace !== undefined) {
             state.activeWorkspace = action.payload.active_workspace;
           } else {
@@ -306,7 +304,6 @@ export const workbenchSlice = createAppSlice({
         },
 
         rejected: (state, action) => {
-          state.initState = "failed";
           state.error = action.payload as string;
         },
       },

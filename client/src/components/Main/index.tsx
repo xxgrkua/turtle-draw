@@ -47,9 +47,12 @@ const Main: React.FC = function () {
   };
 
   useEffect(() => {
-    dispatch(initWorkbench()).catch((error) => {
-      console.log(error);
-    });
+    dispatch(initWorkbench())
+      .unwrap()
+      .catch((error) => {
+        handleError("Failed to initialize workbench", "error");
+        console.log(error);
+      });
   }, [dispatch, userInfo]);
 
   const theme = createTheme({

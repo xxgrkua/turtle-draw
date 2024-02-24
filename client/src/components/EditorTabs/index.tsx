@@ -31,7 +31,9 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   closeFile,
   createFile,
+  createWorkspace,
   selectActiveWorkspace,
+  selectAllWorkspaces,
   selectWorkbenchInitState,
   selectWorkspaceById,
   updateWorkspace,
@@ -112,6 +114,7 @@ function File(props: FileProps) {
   const workspace = useAppSelector((state) => {
     return selectWorkspaceById(state, workspaceId);
   });
+  const workspaces = useAppSelector(selectAllWorkspaces);
 
   const dispatch = useAppDispatch();
 
@@ -139,15 +142,15 @@ function File(props: FileProps) {
   };
 
   const getCurrentDefaultFileName = () => {
-    const fileSet = new Set(workspace.fileRefs.map(({ name }) => name));
+    const filenameSet = new Set(workspace.fileRefs.map(({ name }) => name));
     let index = 0;
     while (true) {
       if (index === 0) {
-        if (!fileSet.has("Untitled.scm")) {
+        if (!filenameSet.has("Untitled.scm")) {
           return "Untitled.scm";
         }
       } else {
-        if (!fileSet.has(`Untitled-${index}.scm`)) {
+        if (!filenameSet.has(`Untitled-${index}.scm`)) {
           return `Untitled-${index}.scm`;
         }
       }
@@ -158,7 +161,6 @@ function File(props: FileProps) {
   const [newFileName, setNewFileName] = React.useState(
     getCurrentDefaultFileName(),
   );
-  const [newWorkspaceName, setNewWorkspaceName] = React.useState("");
 
   const handleNewFile = (name: string) => {
     dispatch(createFile({ workspace_id: workspaceId, name }))
@@ -177,6 +179,46 @@ function File(props: FileProps) {
     setNewFileAnchorEl(null);
   };
 
+  const getCurrentDefaultWorkspaceName = () => {
+    const workspaceNameSet = new Set(workspaces.map(({ name }) => name));
+    let index = 0;
+    while (true) {
+      if (index === 0) {
+        if (!workspaceNameSet.has("Workspace")) {
+          return "Workspace";
+        }
+      } else {
+        if (!workspaceNameSet.has(`Workspace-${index}`)) {
+          return `Workspace-${index}`;
+        }
+      }
+      index++;
+    }
+  };
+
+  const [newWorkspaceName, setNewWorkspaceName] = React.useState(
+    getCurrentDefaultWorkspaceName(),
+  );
+
+  const handleNewWorkspace = (name: string) => {
+    dispatch(createWorkspace({ name }))
+      .unwrap()
+      .catch((error) => {
+        handleError(`${error}`, "error");
+        console.log(error);
+      });
+  };
+
+  const handleNewWorkspacePopover = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setNewWorkspaceAnchorEl(event.currentTarget);
+  };
+
+  const handleNewWorkspacePopoverClose = () => {
+    setNewWorkspaceAnchorEl(null);
+  };
+
   return (
     <div role="tabpanel" hidden={value !== fileId}>
       {value === fileId && (
@@ -190,7 +232,12 @@ function File(props: FileProps) {
           >
             <ButtonGroup variant="text">
               <Tooltip title="New File">
-                <IconButton onClick={handleNewFilePopover}>
+                <IconButton
+                  onClick={(event) => {
+                    setNewFileName(getCurrentDefaultFileName());
+                    handleNewFilePopover(event);
+                  }}
+                >
                   <InsertDriveFileIcon />
                 </IconButton>
               </Tooltip>
@@ -205,6 +252,7 @@ function File(props: FileProps) {
               >
                 <Stack direction="row">
                   <TextField
+                    required
                     label="filename"
                     variant="outlined"
                     size="small"
@@ -220,7 +268,6 @@ function File(props: FileProps) {
                     onClick={() => {
                       handleNewFile(newFileName);
                       handleNewFilePopoverClose();
-                      setNewFileName(getCurrentDefaultFileName());
                     }}
                   >
                     <CheckIcon />
@@ -230,7 +277,6 @@ function File(props: FileProps) {
                     color="error"
                     onClick={() => {
                       handleNewFilePopoverClose();
-                      setNewFileName(getCurrentDefaultFileName());
                     }}
                   >
                     <CloseIcon />
@@ -238,10 +284,57 @@ function File(props: FileProps) {
                 </Stack>
               </Popover>
               <Tooltip title="New Workspace">
-                <IconButton>
+                <IconButton
+                  onClick={(event) => {
+                    setNewWorkspaceName(getCurrentDefaultWorkspaceName());
+                    handleNewWorkspacePopover(event);
+                  }}
+                >
                   <CreateNewFolderIcon />
                 </IconButton>
               </Tooltip>
+              <Popover
+                open={Boolean(newWorkspaceAnchorEl)}
+                anchorEl={newWorkspaceAnchorEl}
+                onClose={handleNewWorkspacePopoverClose}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+              >
+                <Stack direction="row">
+                  <TextField
+                    required
+                    label="workspace name"
+                    variant="outlined"
+                    size="small"
+                    sx={{ margin: "8px" }}
+                    value={newWorkspaceName}
+                    onChange={(event) => {
+                      setNewWorkspaceName(event.currentTarget.value);
+                    }}
+                  />
+                  <IconButton
+                    size="medium"
+                    color="success"
+                    onClick={() => {
+                      handleNewWorkspace(newWorkspaceName);
+                      handleNewWorkspacePopoverClose();
+                    }}
+                  >
+                    <CheckIcon />
+                  </IconButton>
+                  <IconButton
+                    size="medium"
+                    color="error"
+                    onClick={() => {
+                      handleNewWorkspacePopoverClose();
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </Stack>
+              </Popover>
               <Tooltip title="Save">
                 <IconButton>
                   <SaveIcon />

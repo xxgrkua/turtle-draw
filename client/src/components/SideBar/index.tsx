@@ -6,6 +6,11 @@ import {
   AlertColor,
   Button,
   ButtonGroup,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
   ThemeProvider,
   Typography,
   alpha,
@@ -24,6 +29,8 @@ import React, { useEffect } from "react";
 
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
+  createFile,
+  createWorkspace,
   selectActiveWorkspace,
   selectActiveWorkspaceId,
   selectAllWorkspaces,
@@ -113,14 +120,17 @@ const CustomContent = React.forwardRef(function CustomContent(
   const icon = iconProp || expansionIcon || displayIcon;
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+    console.log("handle mouse down");
     preventSelection(event);
   };
 
   const handleExpansionClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    console.log("handle expansion");
     handleExpansion(event);
   };
 
   const handleSelectionClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    console.log("handle selection");
     handleSelection(event);
     onClick?.(event);
   };
@@ -136,7 +146,10 @@ const CustomContent = React.forwardRef(function CustomContent(
       onMouseDown={handleMouseDown}
       ref={ref as React.Ref<HTMLDivElement>}
     >
-      <div className="MuiTreeItem-contentBar" />
+      <div
+        className="MuiTreeItem-contentBar"
+        style={{ pointerEvents: "none" }}
+      />
       <div onClick={handleExpansionClick} className={classes.iconContainer}>
         {icon}
       </div>
@@ -159,11 +172,6 @@ const CustomTreeItem = React.forwardRef(function CustomTreeItem(
 });
 
 const theme = createTheme({
-  palette: {
-    primary: {
-      main: "rgb(0,0,0,0.54)",
-    },
-  },
   components: {
     MuiButton: {
       styleOverrides: {
@@ -175,6 +183,9 @@ const theme = createTheme({
     MuiButtonGroup: {
       styleOverrides: {
         firstButton: {
+          borderRight: "0px solid",
+        },
+        middleButton: {
           borderRight: "0px solid",
         },
       },
@@ -201,6 +212,53 @@ export default function SideBar({
 
   const [selected, setSelected] = React.useState<string>("");
 
+  const getCurrentDefaultFileName = () => {
+    const filenameSet = new Set(
+      activeWorkspace?.fileRefs.map(({ name }) => name),
+    );
+    let index = 0;
+    while (true) {
+      if (index === 0) {
+        if (!filenameSet.has("Untitled.scm")) {
+          return "Untitled.scm";
+        }
+      } else {
+        if (!filenameSet.has(`Untitled-${index}.scm`)) {
+          return `Untitled-${index}.scm`;
+        }
+      }
+      index++;
+    }
+  };
+
+  const getCurrentDefaultWorkspaceName = () => {
+    const workspaceNameSet = new Set(workspaces.map(({ name }) => name));
+    let index = 0;
+    while (true) {
+      if (index === 0) {
+        if (!workspaceNameSet.has("Workspace")) {
+          return "Workspace";
+        }
+      } else {
+        if (!workspaceNameSet.has(`Workspace-${index}`)) {
+          return `Workspace-${index}`;
+        }
+      }
+      index++;
+    }
+  };
+
+  const [newFileName, setNewFileName] = React.useState<string>(
+    getCurrentDefaultFileName(),
+  );
+  const [workspaceName, setWorkspaceName] = React.useState<string>(
+    getCurrentDefaultWorkspaceName(),
+  );
+  const [newFileDialogOpen, setNewFileDialogOpen] =
+    React.useState<boolean>(false);
+  const [newWorkspaceDialogOpen, setNewWorkspaceDialogOpen] =
+    React.useState<boolean>(false);
+
   useEffect(() => {
     if (activeWorkspaceId) {
       if (activeWorkspace?.activeFile) {
@@ -211,18 +269,142 @@ export default function SideBar({
     }
   }, [activeWorkspaceId, activeWorkspace?.activeFile]);
 
-  const handleClick = async (workspace_id: string, file_id: string) => {
+  const handleWorkspaceClick = async (workspace_id: string) => {
+    await dispatch(updateWorkspace({ workspace_id, active: true })).unwrap();
+  };
+
+  const handleFileClick = async (workspace_id: string, file_id: string) => {
     await dispatch(
       updateWorkspace({ workspace_id, active: true, active_file: file_id }),
     ).unwrap();
+  };
+
+  const handleNewFileDialogOpen = () => {
+    setNewFileDialogOpen(true);
+  };
+
+  const handleNewFileDialogClose = () => {
+    setNewFileDialogOpen(false);
+    setNewFileName(getCurrentDefaultFileName());
+  };
+
+  const handleNewFile = (name: string) => {
+    if (activeWorkspaceId) {
+      dispatch(createFile({ workspace_id: activeWorkspaceId, name }))
+        .unwrap()
+        .catch((error) => {
+          handleError(`${error}`, "error");
+          console.log(error);
+        });
+    }
+  };
+
+  const handleNewWorkspaceDialogOpen = () => {
+    setNewWorkspaceDialogOpen(true);
+  };
+
+  const handleNewWorkspaceDialogClose = () => {
+    setNewWorkspaceDialogOpen(false);
+  };
+
+  const handleNewWorkspace = (name: string) => {
+    dispatch(createWorkspace({ name }))
+      .unwrap()
+      .catch((error) => {
+        handleError(`${error}`, "error");
+        console.log(error);
+      });
   };
 
   return (
     <React.Fragment>
       <ThemeProvider theme={theme}>
         <ButtonGroup variant="text" size="small" sx={{ padding: "12px" }}>
-          <Button startIcon={<InsertDriveFile />}>New File</Button>
-          <Button startIcon={<CreateNewFolder />}>New Workspace</Button>
+          <Button
+            startIcon={<InsertDriveFile />}
+            onClick={() => {
+              setNewFileName(getCurrentDefaultFileName());
+              handleNewFileDialogOpen();
+            }}
+            disabled={!activeWorkspaceId}
+            color="inherit"
+          >
+            New File
+          </Button>
+          <Dialog
+            open={newFileDialogOpen}
+            onClose={handleNewFileDialogClose}
+            PaperProps={{
+              component: "form",
+              onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                event.preventDefault();
+                handleNewFile(newFileName);
+                handleNewFileDialogClose();
+              },
+            }}
+          >
+            <DialogTitle>New File</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                required
+                margin="dense"
+                label="File Name"
+                variant="standard"
+                value={newFileName}
+                fullWidth
+                onChange={(event) => {
+                  setNewFileName(event.target.value);
+                }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleNewFileDialogClose}>Cancel</Button>
+              <Button type="submit">Create</Button>
+            </DialogActions>
+          </Dialog>
+          <Button
+            startIcon={<CreateNewFolder />}
+            onClick={() => {
+              setWorkspaceName(getCurrentDefaultWorkspaceName());
+              handleNewWorkspaceDialogOpen();
+            }}
+            color="inherit"
+          >
+            New Workspace
+          </Button>
+          <Dialog
+            open={newWorkspaceDialogOpen}
+            onClose={handleNewWorkspaceDialogClose}
+            PaperProps={{
+              component: "form",
+              onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                event.preventDefault();
+                handleNewWorkspace(workspaceName);
+                handleNewWorkspaceDialogClose();
+              },
+            }}
+          >
+            <DialogTitle>New Workspace</DialogTitle>
+            <DialogContent>
+              <TextField
+                autoFocus
+                required
+                margin="dense"
+                label="Workspace Name"
+                variant="standard"
+                value={workspaceName}
+                fullWidth
+                onChange={(event) => {
+                  setWorkspaceName(event.target.value);
+                }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleNewWorkspaceDialogClose}>Cancel</Button>
+              <Button type="submit">Create</Button>
+            </DialogActions>
+          </Dialog>
         </ButtonGroup>
       </ThemeProvider>
       <TreeView
@@ -245,6 +427,13 @@ export default function SideBar({
                   nodeId={workspace.id}
                   key={workspace.id}
                   label={workspace.name}
+                  onClick={() => {
+                    console.log("clicked");
+                    handleWorkspaceClick(workspace.id).catch((error) => {
+                      handleError(`${error}`, "error");
+                      console.log(error);
+                    });
+                  }}
                 >
                   {workspace.fileRefs.map(({ id, name }) => {
                     return (
@@ -253,7 +442,7 @@ export default function SideBar({
                         key={id}
                         label={name}
                         onClick={() => {
-                          handleClick(workspace.id, id).catch((error) => {
+                          handleFileClick(workspace.id, id).catch((error) => {
                             handleError(`${error}`, "error");
                             console.log(error);
                           });
