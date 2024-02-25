@@ -27,11 +27,13 @@ jobs:
     # Update references
     - name: Git Submodule Update
       run: |
+        git switch dev
         git pull --recurse-submodules
         git submodule update --remote --recursive
 
     - name: Commit update
       run: |
+        git switch dev
         git config --local user.name 'github-actions[bot]'
         git config --local user.email 'github-actions[bot]@users.noreply.github.com'
         git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
