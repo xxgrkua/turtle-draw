@@ -2,7 +2,7 @@
 
 [Turtle Graphics](https://en.wikipedia.org/wiki/Turtle_graphics) in [Scheme](https://en.wikipedia.org/wiki/Scheme_(programming_language)).
 
-## Build
+## Building
 
 You need the following prerequisites:
 
