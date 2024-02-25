@@ -1,3 +1,5 @@
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
   Alert,
   AlertColor,
@@ -7,6 +9,8 @@ import {
   Collapse,
   Container,
   Grid,
+  IconButton,
+  InputAdornment,
   Link,
   TextField,
   Typography,
@@ -54,6 +58,18 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ type }) => {
   const [startCheck, setStartCheck] = React.useState<boolean>(false);
 
   const [severity, setSeverity] = React.useState<AlertColor>("info");
+
+  const [showPassword, setShowPassword] = React.useState<boolean>(false);
+
+  const handleClickShowPassword = () => {
+    setShowPassword((show) => !show);
+  };
+
+  const handleMouseDownPassword = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    event.preventDefault();
+  };
 
   const navigate = useNavigate();
 
@@ -218,7 +234,7 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ type }) => {
                 fullWidth
                 name="password"
                 label="Password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 id="password"
                 autoComplete="password"
                 inputProps={{
@@ -231,6 +247,20 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ type }) => {
                 }}
                 error={verify(password)}
                 helperText={verify(password) ? "password is required" : ""}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={handleClickShowPassword}
+                        onMouseDown={handleMouseDownPassword}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
               {type === "register" ? (
                 <React.Fragment>
