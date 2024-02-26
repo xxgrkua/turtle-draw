@@ -145,7 +145,7 @@ function File(props: FileProps) {
   const [newWorkspaceAnchorEl, setNewWorkspaceAnchorEl] =
     React.useState<null | HTMLButtonElement>(null);
 
-  const interpreter = Interpreter();
+  const interpreter = new Interpreter();
 
   const [paths, setPaths] = React.useState<SVGPath[]>([]);
 
