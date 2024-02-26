@@ -22,7 +22,7 @@ import {
   Tooltip,
   createTheme,
 } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
@@ -145,9 +145,14 @@ function File(props: FileProps) {
   const [newWorkspaceAnchorEl, setNewWorkspaceAnchorEl] =
     React.useState<null | HTMLButtonElement>(null);
 
-  const interpreter = new Interpreter();
+  const interpreter = useMemo(() => new Interpreter(), []);
 
   const [paths, setPaths] = React.useState<SVGPath[]>([]);
+  const [visible, setVisible] = React.useState(true);
+  const [turtle_x, setTurtle_x] = React.useState(0);
+  const [turtle_y, setTurtle_y] = React.useState(0);
+  const [rotation, setRotation] = React.useState(-90);
+  const [bgColor, setBgColor] = React.useState("white");
 
   useEffect(() => {
     if (value === fileId && fileState === "idle") {
@@ -177,6 +182,10 @@ function File(props: FileProps) {
         output = result.console;
         const canvas = result.canvas;
         setPaths(canvas.paths);
+        setVisible(canvas.visible);
+        setTurtle_x(canvas.x);
+        setTurtle_y(canvas.y);
+        setRotation(canvas.rotation);
       } catch (error) {
         output = error as string;
       }
@@ -542,6 +551,12 @@ function File(props: FileProps) {
                         />
                       );
                     })}
+                    {visible ? (
+                      <polygon
+                        points="0,0 -10,5 -10,-5"
+                        transform={`translate(${turtle_x},${turtle_y}) rotate(${rotation})`}
+                      />
+                    ) : null}
                   </g>
                 </svg>
               </Paper>
