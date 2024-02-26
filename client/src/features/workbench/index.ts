@@ -1,11 +1,11 @@
 import { nanoid } from "@reduxjs/toolkit";
 import axios from "axios";
-import { getInterpreter } from "rust-scheme";
+import { Interpreter } from "rust-scheme";
 import { createAppSlice } from "../../app/createAppSlice";
 import { ApiErrorMessage } from "../../types/api";
 import { UserSliceState, selectUserInfo } from "../user";
 
-const Interpreters: { [file_id: string]: (code: string) => string } = {};
+const Interpreters: { [file_id: string]: Interpreter } = {};
 
 interface FileRef {
   id: string;
@@ -603,7 +603,7 @@ export const workbenchSlice = createAppSlice({
             state.workspaces[action.meta.arg.workspace_id].activeFile =
               action.payload.id;
           }
-          Interpreters[action.payload.id] = getInterpreter();
+          Interpreters[action.payload.id] = new Interpreter();
         },
 
         rejected: (state, action) => {

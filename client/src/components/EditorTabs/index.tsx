@@ -26,7 +26,7 @@ import React, { useEffect } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
-import { getInterpreter } from "rust-scheme";
+import { SVGPath, getInterpreter } from "rust-scheme";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   closeFile,
@@ -147,6 +147,8 @@ function File(props: FileProps) {
 
   const interpreter = getInterpreter();
 
+  const [paths, setPaths] = React.useState<SVGPath[]>([]);
+
   useEffect(() => {
     if (value === fileId && fileState === "idle") {
       dispatch(initFile({ workspace_id: workspaceId, file_id: fileId }))
@@ -169,8 +171,16 @@ function File(props: FileProps) {
 
   const handleLineChange = (line: string) => {
     if (line.endsWith("\n")) {
-      const result = interpreter(line);
-      const newHistory = [...history, result];
+      let output = "";
+      try {
+        const result = interpreter(line);
+        output = result.console;
+        const canvas = result.canvas;
+        setPaths(canvas.paths);
+      } catch (error) {
+        output = error as string;
+      }
+      const newHistory = [...history, output];
       setHistory(newHistory);
       setLine("");
     } else {
@@ -513,7 +523,27 @@ function File(props: FileProps) {
             </Grid>
             <Grid item xs={6}>
               <Paper elevation={0} sx={{ height: "100%" }}>
-                canvas
+                <svg
+                  width="100%"
+                  height="100%"
+                  xmlns="http://www.w3.org/2000/svg"
+                  version="1.1"
+                  viewBox="-256 -256 512 512"
+                >
+                  <g>
+                    {Array.from(paths.entries()).map(([index, path]) => {
+                      return (
+                        <path
+                          key={index}
+                          d={path.d}
+                          fill={path.fill}
+                          stroke={path.stroke}
+                          // strokeWidth={path.strokeWidth}
+                        />
+                      );
+                    })}
+                  </g>
+                </svg>
               </Paper>
             </Grid>
           </Grid>
