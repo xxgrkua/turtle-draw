@@ -26,7 +26,7 @@ import React, { useEffect } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
-import { SVGPath, getInterpreter } from "rust-scheme";
+import { Interpreter, SVGPath } from "rust-scheme";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   closeFile,
@@ -145,7 +145,7 @@ function File(props: FileProps) {
   const [newWorkspaceAnchorEl, setNewWorkspaceAnchorEl] =
     React.useState<null | HTMLButtonElement>(null);
 
-  const interpreter = getInterpreter();
+  const interpreter = Interpreter();
 
   const [paths, setPaths] = React.useState<SVGPath[]>([]);
 
@@ -173,7 +173,7 @@ function File(props: FileProps) {
     if (line.endsWith("\n")) {
       let output = "";
       try {
-        const result = interpreter(line);
+        const result = interpreter.eval(line);
         output = result.console;
         const canvas = result.canvas;
         setPaths(canvas.paths);
