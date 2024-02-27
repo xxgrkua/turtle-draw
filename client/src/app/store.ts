@@ -13,6 +13,7 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 
+import { terminalSlice } from "../features/terminal";
 import { userSlice } from "../features/user";
 import { workbenchSlice } from "../features/workbench";
 
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
     workbenchSlice.reducer,
   ),
   [userSlice.reducerPath]: userSlice.reducer,
+  [terminalSlice.reducerPath]: terminalSlice.reducer,
 });
 
 const persistConfig = {

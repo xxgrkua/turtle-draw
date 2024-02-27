@@ -22,12 +22,21 @@ import {
   Tooltip,
   createTheme,
 } from "@mui/material";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
-import { Interpreter, SVGPath } from "rust-scheme";
+import { SVGPath } from "rust-scheme";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
+import {
+  closeTerminal,
+  initTerminal,
+  selectCurrent,
+  selectHistory,
+  selectInterpreter,
+  setCurrent,
+  updateHistory,
+} from "../../features/terminal";
 import {
   closeFile,
   createFile,
@@ -136,17 +145,13 @@ function File(props: FileProps) {
   const dispatch = useAppDispatch();
 
   const [code, setCode] = React.useState("");
-  const [line, setLine] = React.useState("");
-
-  const [history, setHistory] = React.useState<string[]>([]);
 
   const [newFileAnchorEl, setNewFileAnchorEl] =
     React.useState<null | HTMLButtonElement>(null);
   const [newWorkspaceAnchorEl, setNewWorkspaceAnchorEl] =
     React.useState<null | HTMLButtonElement>(null);
 
-  const interpreter = useMemo(() => new Interpreter(), []);
-
+  // const interpreter = useMemo(() => new Interpreter(), []);
   const [paths, setPaths] = React.useState<SVGPath[]>([]);
   const [visible, setVisible] = React.useState(true);
   const [turtle_x, setTurtle_x] = React.useState(0);
@@ -156,6 +161,7 @@ function File(props: FileProps) {
 
   useEffect(() => {
     if (value === fileId && fileState === "idle") {
+      dispatch(initTerminal({ file_id: fileId }));
       dispatch(initFile({ workspace_id: workspaceId, file_id: fileId }))
         .unwrap()
         .catch((error) => {
@@ -164,6 +170,12 @@ function File(props: FileProps) {
         });
     }
   }, [dispatch, fileId, fileState, value, workspaceId, handleError]);
+
+  const history = useAppSelector((state) => selectHistory(state, fileId));
+  const line = useAppSelector((state) => selectCurrent(state, fileId));
+  const interpreter = useAppSelector((state) =>
+    selectInterpreter(state, fileId),
+  );
 
   useEffect(() => {
     if (file) {
@@ -189,11 +201,10 @@ function File(props: FileProps) {
       } catch (error) {
         output = error as string;
       }
-      const newHistory = [...history, output];
-      setHistory(newHistory);
-      setLine("");
+      dispatch(updateHistory({ file_id: fileId, out: output }));
+      dispatch(setCurrent({ file_id: fileId, current: "" }));
     } else {
-      setLine(line);
+      dispatch(setCurrent({ file_id: fileId, current: line }));
     }
   };
 
@@ -634,6 +645,7 @@ export default function EditorTabs({
                           size="small"
                           onClick={(event) => {
                             event.stopPropagation();
+                            dispatch(closeTerminal({ file_id: fileId }));
                             dispatch(
                               closeFile({
                                 workspace_id: activeWorkspace.id,

@@ -1,11 +1,8 @@
 import { nanoid } from "@reduxjs/toolkit";
 import axios from "axios";
-import { Interpreter } from "rust-scheme";
 import { createAppSlice } from "../../app/createAppSlice";
 import { ApiErrorMessage } from "../../types/api";
 import { UserSliceState, selectUserInfo } from "../user";
-
-const Interpreters: { [file_id: string]: Interpreter } = {};
 
 interface FileRef {
   id: string;
@@ -54,11 +51,6 @@ interface CreateFileResponse extends FileResponse {
   workspace_active_file: string;
 }
 
-interface TerminalState {
-  history: string[];
-  current: string;
-}
-
 interface GraphicsState {
   content: string;
 }
@@ -67,7 +59,6 @@ interface FileState {
   id: string;
   name: string;
   content: string;
-  terminal: TerminalState;
   graphic: GraphicsState;
 }
 
@@ -96,7 +87,7 @@ const initialFileId = nanoid();
 const initialWorkspaceName = "Workspace";
 const initialFileName = "Untitled.scm";
 
-const initialState: WorkbenchState = {
+const initialWorkbenchState: WorkbenchState = {
   workspaceIds: [initialWorkspaceId],
   workspaces: {
     [initialWorkspaceId]: {
@@ -117,10 +108,6 @@ const initialState: WorkbenchState = {
           id: initialFileId,
           name: initialFileName,
           content: "",
-          terminal: {
-            history: [],
-            current: "",
-          },
           graphic: {
             content: "",
           },
@@ -139,7 +126,7 @@ const initialState: WorkbenchState = {
 
 export const workbenchSlice = createAppSlice({
   name: "workbench",
-  initialState,
+  initialState: initialWorkbenchState,
   reducers: (create) => ({
     initWorkbench: create.asyncThunk<WorkbenchResponse | null>(
       async (_, thunkAPI) => {
@@ -463,10 +450,6 @@ export const workbenchSlice = createAppSlice({
               id: action.payload.id,
               name: action.payload.name,
               content: action.payload.content,
-              terminal: {
-                history: [],
-                current: "",
-              },
               graphic: {
                 content: action.payload.graphic,
               },
@@ -556,10 +539,6 @@ export const workbenchSlice = createAppSlice({
               id: action.payload.id,
               name: action.payload.name,
               content: action.payload.content,
-              terminal: {
-                history: [],
-                current: "",
-              },
               graphic: {
                 content: action.payload.graphic,
               },
@@ -589,10 +568,6 @@ export const workbenchSlice = createAppSlice({
               id: action.payload.id,
               name: action.payload.name,
               content: action.payload.content,
-              terminal: {
-                history: [],
-                current: "",
-              },
               graphic: {
                 content: action.payload.graphic,
               },
@@ -603,7 +578,6 @@ export const workbenchSlice = createAppSlice({
             state.workspaces[action.meta.arg.workspace_id].activeFile =
               action.payload.id;
           }
-          Interpreters[action.payload.id] = new Interpreter();
         },
 
         rejected: (state, action) => {
@@ -702,8 +676,6 @@ export const workbenchSlice = createAppSlice({
             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
             action.payload.deleted_file
           ];
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-          delete Interpreters[action.payload.deleted_file];
         },
 
         rejected: (state, action) => {
@@ -898,8 +870,6 @@ export const workbenchSlice = createAppSlice({
                 ].openedFiles.filter((id) => id !== action.payload.closed_file);
             }
           }
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-          delete Interpreters[action.payload.closed_file];
         },
 
         rejected: (state, action) => {
@@ -962,9 +932,6 @@ export const workbenchSlice = createAppSlice({
         return null;
       }
     },
-    selectInterpreterById: (state, file_id: string) => {
-      return Interpreters[file_id];
-    },
     selectWorkbenchInitState: (state) => state.initState,
     selectActiveWorkspaceId: (state) => state.activeWorkspace,
     selectOpenedFileRefs: (state, workspace_id: string) => {
@@ -989,7 +956,6 @@ export const {
   selectWorkbenchError,
   selectWorkbenchState,
   selectWorkspaceById,
-  selectInterpreterById,
   selectWorkbenchInitState,
   selectActiveWorkspaceId,
   selectOpenedFileRefs,
