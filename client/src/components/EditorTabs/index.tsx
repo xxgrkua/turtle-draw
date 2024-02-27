@@ -450,29 +450,29 @@ function File(props: FileProps) {
                   </IconButton>
                 </Stack>
               </Popover>
-              <Tooltip title="Save">
+              <Tooltip title="Save File">
                 <span>
                   <IconButton disabled={fileSaved} onClick={handleSave}>
                     <SaveIcon />
                   </IconButton>
                 </span>
               </Tooltip>
-              <Tooltip title="Run">
+              <Tooltip title="Run Code">
                 <IconButton onClick={handleRun}>
                   <ArrowRightIcon sx={{ transform: "scale(1.8)" }} />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Restart">
+              <Tooltip title="Restart Interpreter">
                 <IconButton onClick={restartInterpreter}>
                   <RefreshIcon />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Publish">
+              <Tooltip title="Publish File">
                 <IconButton>
                   <PublishIcon sx={{ transform: "scale(1.2)" }} />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Export">
+              <Tooltip title="Export SVG">
                 <IconButton>
                   <ShortcutIcon />
                 </IconButton>
