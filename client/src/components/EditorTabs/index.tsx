@@ -579,7 +579,7 @@ function File(props: FileProps) {
                   height="100%"
                   xmlns="http://www.w3.org/2000/svg"
                   version="1.1"
-                  viewBox="-256 -256 512 512"
+                  viewBox="-512 -512 1024 1024"
                 >
                   <g>
                     {Array.from(paths.entries()).map(([index, path]) => {
