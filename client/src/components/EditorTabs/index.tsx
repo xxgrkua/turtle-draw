@@ -318,6 +318,7 @@ function File(props: FileProps) {
       restartInterpreter();
       const result = interpreter.eval(`(begin ${code})`);
       const canvas = result.canvas;
+      setHistory([result.console]);
       setPaths(canvas.paths);
       setVisible(canvas.visible);
       setTurtle_x(canvas.x);
