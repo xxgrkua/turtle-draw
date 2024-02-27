@@ -29,7 +29,7 @@ import AceEditor from "react-ace";
 import "ace-builds/src-noconflict/mode-scheme";
 import { Interpreter, SVGPath } from "rust-scheme";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import { closeTerminal, restartTerminal } from "../../features/terminal";
+import { closeTerminal } from "../../features/terminal";
 import {
   closeFile,
   createFile,
@@ -315,6 +315,7 @@ function File(props: FileProps) {
 
   const handleRun = () => {
     try {
+      restartInterpreter();
       const result = interpreter.eval(`(begin ${code})`);
       const canvas = result.canvas;
       setPaths(canvas.paths);
@@ -331,7 +332,7 @@ function File(props: FileProps) {
     setHistory([]);
     setCurrent("");
     setRestartCount(restartCount + 1);
-    dispatch(restartTerminal({ file_id: fileId }));
+    // dispatch(restartTerminal({ file_id: fileId }));
   };
 
   return (
