@@ -4,6 +4,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import PublishIcon from "@mui/icons-material/Publish";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import SaveIcon from "@mui/icons-material/Save";
 import ShortcutIcon from "@mui/icons-material/Shortcut";
 import {
@@ -22,21 +23,13 @@ import {
   Tooltip,
   createTheme,
 } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
-import { SVGPath } from "rust-scheme";
+import { Interpreter, SVGPath } from "rust-scheme";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
-import {
-  closeTerminal,
-  initTerminal,
-  selectCurrent,
-  selectHistory,
-  selectInterpreter,
-  setCurrent,
-  updateHistory,
-} from "../../features/terminal";
+import { closeTerminal, restartTerminal } from "../../features/terminal";
 import {
   closeFile,
   createFile,
@@ -145,6 +138,13 @@ function File(props: FileProps) {
   const dispatch = useAppDispatch();
 
   const [code, setCode] = React.useState("");
+  const [history, setHistory] = React.useState<string[]>([]);
+  const [current, setCurrent] = React.useState("");
+  const [restartCount, setRestartCount] = React.useState(0);
+  const interpreter = useMemo(() => {
+    restartCount;
+    return new Interpreter();
+  }, [restartCount]);
 
   const [newFileAnchorEl, setNewFileAnchorEl] =
     React.useState<null | HTMLButtonElement>(null);
@@ -161,7 +161,7 @@ function File(props: FileProps) {
 
   useEffect(() => {
     if (value === fileId && fileState === "idle") {
-      dispatch(initTerminal({ file_id: fileId }));
+      // dispatch(initTerminal({ file_id: fileId }));
       dispatch(initFile({ workspace_id: workspaceId, file_id: fileId }))
         .unwrap()
         .catch((error) => {
@@ -171,11 +171,11 @@ function File(props: FileProps) {
     }
   }, [dispatch, fileId, fileState, value, workspaceId, handleError]);
 
-  const history = useAppSelector((state) => selectHistory(state, fileId));
-  const line = useAppSelector((state) => selectCurrent(state, fileId));
-  const interpreter = useAppSelector((state) =>
-    selectInterpreter(state, fileId),
-  );
+  // const history = useAppSelector((state) => selectHistory(state, fileId));
+  // const line = useAppSelector((state) => selectCurrent(state, fileId));
+  // const interpreter = useAppSelector((state) =>
+  //   selectInterpreter(state, fileId),
+  // );
 
   useEffect(() => {
     if (file) {
@@ -201,10 +201,12 @@ function File(props: FileProps) {
       } catch (error) {
         output = error as string;
       }
-      dispatch(updateHistory({ file_id: fileId, out: output }));
-      dispatch(setCurrent({ file_id: fileId, current: "" }));
+      setHistory([...history, `scm> ${line}`, output]);
+      // dispatch(updateHistory({ file_id: fileId, out: output }));
+      // dispatch(setCurrent({ file_id: fileId, current: "" }));
+      setCurrent("");
     } else {
-      dispatch(setCurrent({ file_id: fileId, current: line }));
+      setCurrent(line);
     }
   };
 
@@ -232,6 +234,7 @@ function File(props: FileProps) {
   );
 
   const handleNewFile = (name: string) => {
+    // dispatch(initTerminal({ file_id: fileId }));
     dispatch(createFile({ workspace_id: workspaceId, name }))
       .unwrap()
       .catch((error) => {
@@ -308,6 +311,27 @@ function File(props: FileProps) {
         handleError(`${error}`, "error");
         console.log(error);
       });
+  };
+
+  const handleRun = () => {
+    try {
+      const result = interpreter.eval(`(begin ${code})`);
+      const canvas = result.canvas;
+      setPaths(canvas.paths);
+      setVisible(canvas.visible);
+      setTurtle_x(canvas.x);
+      setTurtle_y(canvas.y);
+      setRotation(canvas.rotation);
+    } catch (error) {
+      // dispatch(updateHistory({ file_id: fileId, out: error as string }));
+    }
+  };
+
+  const restartInterpreter = () => {
+    setHistory([]);
+    setCurrent("");
+    setRestartCount(restartCount + 1);
+    dispatch(restartTerminal({ file_id: fileId }));
   };
 
   return (
@@ -432,8 +456,13 @@ function File(props: FileProps) {
                 </span>
               </Tooltip>
               <Tooltip title="Run">
-                <IconButton>
+                <IconButton onClick={handleRun}>
                   <ArrowRightIcon sx={{ transform: "scale(1.8)" }} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Restart">
+                <IconButton onClick={restartInterpreter}>
+                  <RefreshIcon />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Publish">
@@ -507,7 +536,7 @@ function File(props: FileProps) {
                         ))}
                       </div>
                       <AceEditor
-                        value={line}
+                        value={current}
                         mode="scheme"
                         width="100%"
                         tabSize={2}

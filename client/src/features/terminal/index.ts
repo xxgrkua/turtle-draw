@@ -32,12 +32,24 @@ export const terminalSlice = createAppSlice({
 
     updateHistory: create.reducer(
       (state, action: { payload: { file_id: string; out: string } }) => {
+        if (!(action.payload.file_id in state)) {
+          state[action.payload.file_id] = {
+            history: [],
+            current: "",
+          };
+        }
         state[action.payload.file_id].history.push(action.payload.out);
       },
     ),
 
     setCurrent: create.reducer(
       (state, action: { payload: { file_id: string; current: string } }) => {
+        if (!(action.payload.file_id in state)) {
+          state[action.payload.file_id] = {
+            history: [],
+            current: "",
+          };
+        }
         state[action.payload.file_id].current = action.payload.current;
       },
     ),
@@ -48,6 +60,18 @@ export const terminalSlice = createAppSlice({
         delete state[action.payload.file_id];
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete Interpreters[action.payload.file_id];
+      },
+    ),
+
+    restartTerminal: create.reducer(
+      (state, action: { payload: { file_id: string } }) => {
+        if (action.payload.file_id in state) {
+          state[action.payload.file_id] = {
+            history: [],
+            current: "",
+          };
+          Interpreters[action.payload.file_id] = new Interpreter();
+        }
       },
     ),
   }),
@@ -74,5 +98,10 @@ export const terminalSlice = createAppSlice({
 export const { selectHistory, selectCurrent, selectInterpreter } =
   terminalSlice.selectors;
 
-export const { initTerminal, updateHistory, setCurrent, closeTerminal } =
-  terminalSlice.actions;
+export const {
+  initTerminal,
+  updateHistory,
+  setCurrent,
+  closeTerminal,
+  restartTerminal,
+} = terminalSlice.actions;
