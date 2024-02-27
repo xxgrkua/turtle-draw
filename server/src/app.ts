@@ -95,7 +95,7 @@ async function main() {
   };
 
   if (process.env.NODE_ENV === "production") {
-    // app.set("trust proxy", 1);
+    app.set("trust proxy", 1);
     if (sess.cookie) {
       sess.cookie.secure = true;
     }
