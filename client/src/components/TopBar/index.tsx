@@ -50,7 +50,15 @@ const TopBar: React.FC = function () {
             noWrap
             sx={{
               mr: 2,
-              fontFamily: "monospace",
+              fontFamily: [
+                "Monaco",
+                "Menlo",
+                "Ubuntu Mono",
+                "Consolas",
+                "Source Code Pro",
+                "source-code-pro",
+                "monospace",
+              ].join(", "),
               fontWeight: 700,
               letterSpacing: ".3rem",
               color: "inherit",
@@ -62,15 +70,6 @@ const TopBar: React.FC = function () {
               to={"/"}
               sx={{
                 color: "white",
-                fontFamily: [
-                  "Monaco",
-                  "Menlo",
-                  "Ubuntu Mono",
-                  "Consolas",
-                  "Source Code Pro",
-                  "source-code-pro",
-                  "monospace",
-                ].join(", "),
               }}
             >
               TurtleDraw

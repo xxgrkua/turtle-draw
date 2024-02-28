@@ -151,7 +151,13 @@ export async function modifyFile(
       file.content = request.body.content || file.content;
       file.graphic = { content: request.body.graphic || file.graphic.content };
       if (request.body.name) {
-        if (workspace.files.some((f) => f.name === request.body.name)) {
+        if (
+          workspace.files.some(
+            (f) =>
+              !f._id.equals(request.params.fileId) &&
+              f.name === request.body.name,
+          )
+        ) {
           next(
             new ApiError({
               status: 400,
@@ -161,9 +167,14 @@ export async function modifyFile(
           return;
         } else {
           file.name = request.body.name;
+          const fileRef = workspace.files.id(file._id);
+          if (fileRef) {
+            fileRef.name = request.body.name;
+          }
         }
       }
       await file.save();
+      await workbench?.save();
       response.json({
         id: file._id,
         name: file.name,

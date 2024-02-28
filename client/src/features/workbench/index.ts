@@ -722,6 +722,25 @@ export const workbenchSlice = createAppSlice({
             }
           }
         } else {
+          const state = thunkAPI.getState() as { workbench: WorkbenchState };
+          if (payload.name !== undefined) {
+            if (!payload.name) {
+              return thunkAPI.rejectWithValue("File name is required");
+            } else if (
+              state.workbench.workspaces[payload.workspace_id].fileRefs[
+                payload.file_id
+              ].name !== payload.name &&
+              Object.entries(
+                state.workbench.workspaces[payload.workspace_id].fileRefs,
+              ).find(([, { name }]) => {
+                return name === payload.name;
+              })
+            ) {
+              return thunkAPI.rejectWithValue(
+                "File with the same name already exists",
+              );
+            }
+          }
           return thunkAPI.fulfillWithValue({
             id: payload.file_id,
             name: payload.name,

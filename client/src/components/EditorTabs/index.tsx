@@ -2,6 +2,8 @@ import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+import DriveFileRenameOutlineIcon from "@mui/icons-material/DriveFileRenameOutline";
 import InsertDriveFileIcon from "@mui/icons-material/InsertDriveFile";
 import PublishIcon from "@mui/icons-material/Publish";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -23,7 +25,7 @@ import {
   Tooltip,
   createTheme,
 } from "@mui/material";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
@@ -147,9 +149,11 @@ function File(props: FileProps) {
   }, [restartCount]);
 
   const [newFileAnchorEl, setNewFileAnchorEl] =
-    React.useState<null | HTMLButtonElement>(null);
+    useState<null | HTMLButtonElement>(null);
   const [newWorkspaceAnchorEl, setNewWorkspaceAnchorEl] =
-    React.useState<null | HTMLButtonElement>(null);
+    useState<null | HTMLButtonElement>(null);
+  const [renewFileNameAnchorEl, setRenewFileNameAnchorEl] =
+    useState<null | HTMLButtonElement>(null);
 
   // const interpreter = useMemo(() => new Interpreter(), []);
   const [paths, setPaths] = React.useState<SVGPath[]>([]);
@@ -291,6 +295,27 @@ function File(props: FileProps) {
     setNewWorkspaceAnchorEl(null);
   };
 
+  const [renewFileName, setRenewFileName] = React.useState(file?.name || "");
+
+  const handleRenameFile = (name: string) => {
+    dispatch(updateFile({ workspace_id: workspaceId, file_id: fileId, name }))
+      .unwrap()
+      .catch((error) => {
+        handleError(`${error}`, "error");
+        console.log(error);
+      });
+  };
+
+  const handleRenameFilePopover = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
+    setRenewFileNameAnchorEl(event.currentTarget);
+  };
+
+  const handleRenameFilePopoverClose = () => {
+    setRenewFileNameAnchorEl(null);
+  };
+
   const handleSave = () => {
     let finalCode = code;
     if (!finalCode.endsWith("\n")) {
@@ -325,6 +350,7 @@ function File(props: FileProps) {
       setTurtle_y(canvas.y);
       setRotation(canvas.rotation);
     } catch (error) {
+      setHistory([error as string]);
       // dispatch(updateHistory({ file_id: fileId, out: error as string }));
     }
   };
@@ -450,6 +476,58 @@ function File(props: FileProps) {
                   </IconButton>
                 </Stack>
               </Popover>
+              <Tooltip title="Rename File">
+                <IconButton
+                  onClick={(event) => {
+                    setRenewFileName(file?.name || "");
+                    handleRenameFilePopover(event);
+                  }}
+                >
+                  <DriveFileRenameOutlineIcon />
+                </IconButton>
+              </Tooltip>
+              <Popover
+                open={Boolean(renewFileNameAnchorEl)}
+                anchorEl={renewFileNameAnchorEl}
+                onClose={handleRenameFilePopoverClose}
+                anchorOrigin={{
+                  vertical: "bottom",
+                  horizontal: "left",
+                }}
+              >
+                <Stack direction="row">
+                  <TextField
+                    required
+                    label="filename"
+                    variant="outlined"
+                    size="small"
+                    sx={{ margin: "8px" }}
+                    value={renewFileName}
+                    onChange={(event) => {
+                      setRenewFileName(event.currentTarget.value);
+                    }}
+                  />
+                  <IconButton
+                    size="medium"
+                    color="success"
+                    onClick={() => {
+                      handleRenameFile(renewFileName);
+                      handleRenameFilePopoverClose();
+                    }}
+                  >
+                    <CheckIcon />
+                  </IconButton>
+                  <IconButton
+                    size="medium"
+                    color="error"
+                    onClick={() => {
+                      handleRenameFilePopoverClose();
+                    }}
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </Stack>
+              </Popover>
               <Tooltip title="Save File">
                 <span>
                   <IconButton disabled={fileSaved} onClick={handleSave}>
@@ -475,6 +553,11 @@ function File(props: FileProps) {
               <Tooltip title="Export SVG">
                 <IconButton>
                   <ShortcutIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Delete File">
+                <IconButton>
+                  <DeleteForeverIcon />
                 </IconButton>
               </Tooltip>
             </ButtonGroup>
