@@ -12,7 +12,13 @@ import ShortcutIcon from "@mui/icons-material/Shortcut";
 import {
   AlertColor,
   Box,
+  Button,
   ButtonGroup,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
   IconButton,
   Paper,
@@ -36,6 +42,7 @@ import {
   closeFile,
   createFile,
   createWorkspace,
+  deleteFile,
   initFile,
   saveFile,
   selectActiveWorkspace,
@@ -82,6 +89,13 @@ const theme = createTheme({
           "&.Mui-selected": {
             backgroundColor: "white",
           },
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: "none",
         },
       },
     },
@@ -316,6 +330,8 @@ function File(props: FileProps) {
     setRenewFileNameAnchorEl(null);
   };
 
+  const [deleteFileDialogOpen, setDeleteFileDialogOpen] = React.useState(false);
+
   const handleSave = () => {
     let finalCode = code;
     if (!finalCode.endsWith("\n")) {
@@ -360,6 +376,15 @@ function File(props: FileProps) {
     setCurrent("");
     setRestartCount(restartCount + 1);
     // dispatch(restartTerminal({ file_id: fileId }));
+  };
+
+  const handleDeleteFile = () => {
+    dispatch(deleteFile({ workspace_id: workspaceId, file_id: fileId }))
+      .unwrap()
+      .catch((error) => {
+        handleError(`${error}`, "error");
+        console.log(error);
+      });
   };
 
   return (
@@ -556,10 +581,42 @@ function File(props: FileProps) {
                 </IconButton>
               </Tooltip>
               <Tooltip title="Delete File">
-                <IconButton>
+                <IconButton
+                  onClick={() => {
+                    setDeleteFileDialogOpen(true);
+                  }}
+                >
                   <DeleteForeverIcon />
                 </IconButton>
               </Tooltip>
+              <Dialog
+                open={deleteFileDialogOpen}
+                onClose={() => {
+                  setDeleteFileDialogOpen(false);
+                }}
+                fullWidth
+              >
+                <DialogTitle color="error">
+                  Delete File Confirmation
+                </DialogTitle>
+                <DialogContent>
+                  <DialogContentText>
+                    Are you are sure to delete {file?.name}?
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button
+                    onClick={() => {
+                      setDeleteFileDialogOpen(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button color="error" onClick={handleDeleteFile}>
+                    CONFIRM
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </ButtonGroup>
           </Box>
           <Grid container>

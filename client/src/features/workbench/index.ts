@@ -662,6 +662,12 @@ export const workbenchSlice = createAppSlice({
               }
             }
           }
+          state.workspaces[action.meta.arg.workspace_id].openedFiles.splice(
+            state.workspaces[action.meta.arg.workspace_id].openedFiles.indexOf(
+              action.payload.deleted_file,
+            ),
+            1,
+          );
           state.workspaces[action.meta.arg.workspace_id].fileIds.splice(
             state.workspaces[action.meta.arg.workspace_id].fileIds.indexOf(
               action.payload.deleted_file,
