@@ -57,7 +57,22 @@ const TopBar: React.FC = function () {
               textDecoration: "none",
             }}
           >
-            <Link component={RouterLink} to={"/"} sx={{ color: "white" }}>
+            <Link
+              component={RouterLink}
+              to={"/"}
+              sx={{
+                color: "white",
+                fontFamily: [
+                  "Monaco",
+                  "Menlo",
+                  "Ubuntu Mono",
+                  "Consolas",
+                  "Source Code Pro",
+                  "source-code-pro",
+                  "monospace",
+                ].join(", "),
+              }}
+            >
               TurtleDraw
             </Link>
           </Typography>
