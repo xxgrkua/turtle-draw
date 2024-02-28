@@ -31,7 +31,7 @@ import {
   Tooltip,
   createTheme,
 } from "@mui/material";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AceEditor from "react-ace";
 
 import "ace-builds/src-noconflict/mode-scheme";
@@ -156,11 +156,7 @@ function File(props: FileProps) {
   const [code, setCode] = React.useState("");
   const [history, setHistory] = React.useState<string[]>([]);
   const [current, setCurrent] = React.useState("");
-  const [restartCount, setRestartCount] = React.useState(0);
-  const interpreter = useMemo(() => {
-    restartCount;
-    return new Interpreter();
-  }, [restartCount]);
+  const interpreterRef = useRef(new Interpreter());
 
   const [newFileAnchorEl, setNewFileAnchorEl] =
     useState<null | HTMLButtonElement>(null);
@@ -208,7 +204,7 @@ function File(props: FileProps) {
     if (line.endsWith("\n")) {
       let output = "";
       try {
-        const result = interpreter.eval(line);
+        const result = interpreterRef.current.eval(line);
         output = result.console;
         const canvas = result.canvas;
         setPaths(canvas.paths);
@@ -357,7 +353,7 @@ function File(props: FileProps) {
   const handleRun = () => {
     try {
       restartInterpreter();
-      const result = interpreter.eval(`(begin ${code})`);
+      const result = interpreterRef.current.eval(`(begin ${code})`);
       const canvas = result.canvas;
       setHistory([result.console]);
       setPaths(canvas.paths);
@@ -374,7 +370,7 @@ function File(props: FileProps) {
   const restartInterpreter = () => {
     setHistory([]);
     setCurrent("");
-    setRestartCount(restartCount + 1);
+    interpreterRef.current = new Interpreter();
     // dispatch(restartTerminal({ file_id: fileId }));
   };
 
