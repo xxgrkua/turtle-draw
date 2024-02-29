@@ -1,3 +1,4 @@
+import CheckIcon from "@mui/icons-material/Check";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import {
@@ -6,6 +7,7 @@ import {
   Avatar,
   Box,
   Button,
+  CircularProgress,
   Collapse,
   Container,
   Grid,
@@ -269,7 +271,18 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ type }) => {
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}
+                    disabled={state === "loading" || state === "succeeded"}
                   >
+                    {state === "loading" ? (
+                      <CircularProgress
+                        color="inherit"
+                        size={16}
+                        sx={{ mr: 1 }}
+                      />
+                    ) : null}
+                    {state === "succeeded" ? (
+                      <CheckIcon color="inherit" />
+                    ) : null}
                     Register
                   </Button>
                   <Grid container>
@@ -288,7 +301,18 @@ const LoginRegister: React.FC<LoginRegisterProps> = ({ type }) => {
                     fullWidth
                     variant="contained"
                     sx={{ mt: 3, mb: 2 }}
+                    disabled={state === "loading" || state === "succeeded"}
                   >
+                    {state === "loading" ? (
+                      <CircularProgress
+                        color="inherit"
+                        size={16}
+                        sx={{ mr: 1 }}
+                      />
+                    ) : null}
+                    {state === "succeeded" ? (
+                      <CheckIcon color="inherit" />
+                    ) : null}
                     Log In
                   </Button>
                   <Grid container>
