@@ -597,7 +597,7 @@ function File(props: FileProps) {
                 </DialogTitle>
                 <DialogContent>
                   <DialogContentText>
-                    Are you are sure to delete {file?.name}?
+                    Are you sure to delete {file?.name}?
                   </DialogContentText>
                 </DialogContent>
                 <DialogActions>
