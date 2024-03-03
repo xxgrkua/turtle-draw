@@ -10,7 +10,7 @@ import {
   createTheme,
 } from "@mui/material";
 import { nanoid } from "@reduxjs/toolkit";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import { selectUserInfo } from "../../features/user";
@@ -39,12 +39,12 @@ const Main: React.FC = function () {
     setOpen(false);
   };
 
-  const handleError = (message: string, severity?: AlertColor) => {
+  const handleError = useCallback((message: string, severity?: AlertColor) => {
     setKey(nanoid());
     setMessage(message);
     setSeverity(severity ?? "error");
     setOpen(true);
-  };
+  }, []);
 
   useEffect(() => {
     dispatch(initWorkbench())
@@ -53,7 +53,7 @@ const Main: React.FC = function () {
         handleError("Failed to initialize workbench", "error");
         console.log(error);
       });
-  }, [dispatch, userInfo]);
+  }, [dispatch, userInfo, handleError]);
 
   const theme = createTheme({
     palette: {
