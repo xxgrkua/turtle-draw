@@ -353,7 +353,7 @@ function File(props: FileProps) {
   const handleRun = () => {
     try {
       restartInterpreter();
-      const result = interpreterRef.current.eval(`(begin ${code})`);
+      const result = interpreterRef.current.eval_file(code);
       const canvas = result.canvas;
       setHistory([result.console]);
       setPaths(canvas.paths);
