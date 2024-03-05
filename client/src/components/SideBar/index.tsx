@@ -10,7 +10,10 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
+  Menu,
+  MenuItem,
   TextField,
   ThemeProvider,
   Typography,
@@ -32,10 +35,13 @@ import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import {
   createFile,
   createWorkspace,
+  deleteFile,
+  deleteWorkspace,
   selectActiveWorkspace,
   selectActiveWorkspaceId,
   selectAllWorkspaces,
   selectWorkbenchState,
+  updateFile,
   updateWorkspace,
 } from "../../features/workbench";
 import "./style.css";
@@ -196,6 +202,22 @@ interface SideBarProps {
   handleError: (message: string, severity?: AlertColor) => void;
 }
 
+interface ContextMenuProps {
+  mouseX: number;
+  mouseY: number;
+  workspace_id: string;
+  workspace_name: string;
+  file_id: string | undefined;
+  file_name: string | undefined;
+}
+
+interface FocusedItemProps {
+  workspace_id: string;
+  workspace_name: string;
+  file_id: string | undefined;
+  file_name: string | undefined;
+}
+
 export default function SideBar({
   handleError,
 }: SideBarProps): React.ReactElement {
@@ -317,12 +339,105 @@ export default function SideBar({
       });
   };
 
+  const [contextMenu, setContextMenu] = React.useState<ContextMenuProps | null>(
+    null,
+  );
+
+  const handleContextMenuClose = () => {
+    setContextMenu(null);
+  };
+
+  const [focusedItem, setFocusedItem] = React.useState<FocusedItemProps | null>(
+    null,
+  );
+
+  const resetFocusedItem = () => {
+    setFocusedItem(null);
+  };
+
+  const [renameDialogOpen, setRenameDialogOpen] =
+    React.useState<boolean>(false);
+
+  const handleRenameDialogClose = () => {
+    setRenameDialogOpen(false);
+    resetFocusedItem();
+  };
+
+  const [deleteDialogOpen, setDeleteDialogOpen] =
+    React.useState<boolean>(false);
+
+  const handleDeleteDialogClose = () => {
+    setDeleteDialogOpen(false);
+    resetFocusedItem();
+  };
+
+  const [renewName, setRenewName] = React.useState<string>("");
+
+  const handleRename = () => {
+    if (focusedItem?.file_id) {
+      dispatch(
+        updateFile({
+          workspace_id: focusedItem.workspace_id,
+          file_id: focusedItem.file_id,
+          name: renewName,
+        }),
+      )
+        .unwrap()
+        .catch((error) => {
+          handleError(`${error}`, "error");
+          console.log(error);
+        });
+    } else if (focusedItem?.workspace_id) {
+      dispatch(
+        updateWorkspace({
+          workspace_id: focusedItem.workspace_id,
+          name: renewName,
+        }),
+      )
+        .unwrap()
+        .catch((error) => {
+          handleError(`${error}`, "error");
+          console.log(error);
+        });
+    }
+  };
+
+  const handleDelete = () => {
+    if (focusedItem?.file_id) {
+      dispatch(
+        deleteFile({
+          workspace_id: focusedItem.workspace_id,
+          file_id: focusedItem.file_id,
+        }),
+      )
+        .unwrap()
+        .catch((error) => {
+          handleError(`${error}`, "error");
+          console.log(error);
+        });
+    } else if (focusedItem?.workspace_id) {
+      dispatch(
+        deleteWorkspace({
+          workspace_id: focusedItem.workspace_id,
+        }),
+      )
+        .unwrap()
+        .catch((error) => {
+          handleError(`${error}`, "error");
+          console.log(error);
+        });
+    }
+  };
+
   return (
     <div
       style={{
         height: "100%",
         display: "flex",
         flexFlow: "column",
+      }}
+      onContextMenu={(event) => {
+        event.preventDefault();
       }}
     >
       <div style={{ flex: "0", height: "100%" }}>
@@ -449,6 +564,18 @@ export default function SideBar({
                           console.log(error);
                         });
                       }}
+                      onContextMenu={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        setContextMenu({
+                          mouseX: event.clientX,
+                          mouseY: event.clientY,
+                          workspace_id: workspace.id,
+                          workspace_name: workspace.name,
+                          file_id: undefined,
+                          file_name: undefined,
+                        });
+                      }}
                     >
                       {Object.entries(workspace.fileRefs).map(
                         ([, { id, name }]) => {
@@ -465,6 +592,18 @@ export default function SideBar({
                                   },
                                 );
                               }}
+                              onContextMenu={(event) => {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                setContextMenu({
+                                  mouseX: event.clientX,
+                                  mouseY: event.clientY,
+                                  workspace_id: workspace.id,
+                                  workspace_name: workspace.name,
+                                  file_id: id,
+                                  file_name: name,
+                                });
+                              }}
                             />
                           );
                         },
@@ -473,6 +612,117 @@ export default function SideBar({
                   );
                 })
               : null}
+            <ThemeProvider theme={theme}>
+              <Menu
+                open={contextMenu !== null}
+                onClose={handleContextMenuClose}
+                anchorReference="anchorPosition"
+                anchorPosition={
+                  contextMenu
+                    ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                    : undefined
+                }
+              >
+                <MenuItem
+                  onClick={(event) => {
+                    event.preventDefault();
+                    handleContextMenuClose();
+                    setRenameDialogOpen(true);
+                    setFocusedItem({
+                      workspace_id: contextMenu?.workspace_id || "",
+                      workspace_name: contextMenu?.workspace_name || "",
+                      file_id: contextMenu?.file_id || "",
+                      file_name: contextMenu?.file_name || "",
+                    });
+                    setRenewName(
+                      contextMenu?.file_name ||
+                        contextMenu?.workspace_name ||
+                        "",
+                    );
+                  }}
+                >
+                  Rename
+                </MenuItem>
+                <MenuItem
+                  onClick={(event) => {
+                    event.preventDefault();
+                    handleContextMenuClose();
+                    setDeleteDialogOpen(true);
+                    setFocusedItem({
+                      workspace_id: contextMenu?.workspace_id || "",
+                      workspace_name: contextMenu?.workspace_name || "",
+                      file_id: contextMenu?.file_id || "",
+                      file_name: contextMenu?.file_name || "",
+                    });
+                  }}
+                >
+                  Delete
+                </MenuItem>
+              </Menu>
+              <Dialog
+                open={renameDialogOpen}
+                onClose={handleRenameDialogClose}
+                fullWidth
+                PaperProps={{
+                  component: "form",
+                  onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    handleRename();
+                    handleRenameDialogClose();
+                  },
+                }}
+              >
+                <DialogTitle>
+                  {`Rename ${focusedItem?.file_id ? "File" : focusedItem?.workspace_id ? "Workspace" : ""}`}
+                </DialogTitle>
+                <DialogContent>
+                  <TextField
+                    autoFocus
+                    required
+                    margin="dense"
+                    label={`${focusedItem?.file_id ? "File" : focusedItem?.workspace_id ? "Workspace" : ""} Name`}
+                    variant="standard"
+                    fullWidth
+                    value={renewName}
+                    onChange={(event) => {
+                      setRenewName(event.target.value);
+                    }}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleRenameDialogClose}>Cancel</Button>
+                  <Button type="submit">Rename</Button>
+                </DialogActions>
+              </Dialog>
+              <Dialog
+                open={deleteDialogOpen}
+                onClose={handleRenameDialogClose}
+                fullWidth
+                PaperProps={{
+                  component: "form",
+                  onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+                    event.preventDefault();
+                    handleDelete();
+                    handleDeleteDialogClose();
+                  },
+                }}
+              >
+                <DialogTitle color="error">
+                  {`Delete ${focusedItem?.file_id ? "File" : focusedItem?.workspace_id ? "Workspace" : ""} Confirmation`}
+                </DialogTitle>
+                <DialogContent>
+                  <DialogContentText>
+                    {`Are you sure to delete ${focusedItem?.file_name ? focusedItem.file_name : focusedItem?.workspace_name}?`}
+                  </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleDeleteDialogClose}>Cancel</Button>
+                  <Button color="error" type="submit">
+                    CONFIRM
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </ThemeProvider>
           </TreeView>
         </Box>
       </div>
